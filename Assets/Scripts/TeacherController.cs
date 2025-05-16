@@ -17,6 +17,7 @@ public class TeacherController : NetworkBehaviour
     private float horizontalLookRotation = 90f;
 
     private Highlighter lastHighlightedButton;
+    private GameObject  PPTBoard;
 
     private NetworkVariable<FixedString32Bytes> netName = new NetworkVariable<FixedString32Bytes>(
         writePerm: NetworkVariableWritePermission.Server
@@ -53,6 +54,13 @@ public class TeacherController : NetworkBehaviour
         }
 
         // netName.OnValueChanged += OnNameChanged;
+
+        PPTBoard = GameObject.Find("PPTBoard");
+        if (PPTBoard == null)
+        {
+            Debug.LogError("PPTBoard GameObject not found!");
+            return;
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -136,35 +144,40 @@ public class TeacherController : NetworkBehaviour
 
                     if (name == "Action1")
                     {
-                        // StandaloneFileBrowser Test
-                        var extensions = new[] {
-                            new ExtensionFilter("Image Files", "png", "jpg", "jpeg")
-                        };
-                        string[] paths = StandaloneFileBrowser.OpenFilePanel(
-                            "Select Image", "", extensions, true
-                        );
-
-                        if (paths.Length > 0)
+                        // Pick Files/PPT to display on Board
+                        var sync = PPTBoard.GetComponent<BoardImageDisplay>();
+                        if (sync != null)
                         {
-                            for (int i = 0; i < paths.Length; i++)
-                            {
-                                Debug.Log("Selected file: " + paths[i]);
-                            }
-                        }
-                        else
-                        {
-                            Debug.Log("No file selected");
+                            sync.PickAndUploadImage();
                         }
                     }
                     else if (name == "Action2")
                     {
-
+                        // PPT control: Previous
+                        var sync = PPTBoard.GetComponent<BoardImageDisplay>();
+                        if (sync != null)
+                        {
+                            sync.Previous();
+                        }
                     }
                     else if (name == "Action3")
                     {
-
+                        // PPT control: Next
+                        var sync = PPTBoard.GetComponent<BoardImageDisplay>();
+                        if (sync != null)
+                        {
+                            sync.Next();
+                        }
                     }
                     else if (name == "Action4")
+                    {
+
+                    }
+                    else if (name == "Action5")
+                    {
+
+                    }
+                    else if (name == "Action6")
                     {
 
                     }
