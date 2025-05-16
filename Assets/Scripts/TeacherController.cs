@@ -1,3 +1,4 @@
+using SFB;
 using TMPro;
 using UnityEngine;
 using Unity.Netcode;
@@ -135,7 +136,25 @@ public class TeacherController : NetworkBehaviour
 
                     if (name == "Action1")
                     {
+                        // StandaloneFileBrowser Test
+                        var extensions = new[] {
+                            new ExtensionFilter("Image Files", "png", "jpg", "jpeg")
+                        };
+                        string[] paths = StandaloneFileBrowser.OpenFilePanel(
+                            "Select Image", "", extensions, true
+                        );
 
+                        if (paths.Length > 0)
+                        {
+                            for (int i = 0; i < paths.Length; i++)
+                            {
+                                Debug.Log("Selected file: " + paths[i]);
+                            }
+                        }
+                        else
+                        {
+                            Debug.Log("No file selected");
+                        }
                     }
                     else if (name == "Action2")
                     {
