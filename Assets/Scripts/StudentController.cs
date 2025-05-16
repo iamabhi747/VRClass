@@ -111,7 +111,7 @@ public class StudentController : NetworkBehaviour
             lastHighlightedButton.RemoveHighlight();
             lastHighlightedButton = null;
         }
-        if (Physics.Raycast(ray, out RaycastHit hit, 0.5f))
+        if (Physics.Raycast(ray, out RaycastHit hit, 5f))
         {
             if (hit.collider.CompareTag("Interactable"))
             {

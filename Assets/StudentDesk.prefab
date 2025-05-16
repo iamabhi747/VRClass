@@ -485,9 +485,10 @@ GameObject:
   - component: {fileID: 2496058133409968176}
   - component: {fileID: 904622031076603273}
   - component: {fileID: 9111446742617735879}
+  - component: {fileID: 7034507947783794509}
   m_Layer: 0
   m_Name: Action4
-  m_TagString: Untagged
+  m_TagString: Interactable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -501,8 +502,8 @@ Transform:
   m_GameObject: {fileID: 1374892559442114127}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.00269, y: -0.00315, z: 0.00431}
-  m_LocalScale: {x: 0.00060738187, y: -0.00065974344, z: -0.0002499335}
+  m_LocalPosition: {x: -0.002472, y: -0.00321, z: 0.00431}
+  m_LocalScale: {x: 0.0012646057, y: -0.00076524704, z: -0.0002499335}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1520759293726364943}
@@ -538,7 +539,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 40c94ba23bdad4606aeafc60af54faa1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -581,6 +582,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7034507947783794509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1374892559442114127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 825761717dda640b7b8473f0fc6d041c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactableName: Action4
+  highlightMaterial: {fileID: 2100000, guid: fed22790ce10d49eebee23f4955c15a6, type: 2}
 --- !u!1 &1510137665477155395
 GameObject:
   m_ObjectHideFlags: 0
@@ -1194,9 +1209,10 @@ GameObject:
   - component: {fileID: 6673530283149151194}
   - component: {fileID: 6083162474001756313}
   - component: {fileID: 8095108254686854106}
+  - component: {fileID: 8022497590666034964}
   m_Layer: 0
   m_Name: Action2
-  m_TagString: Untagged
+  m_TagString: Interactable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1210,8 +1226,8 @@ Transform:
   m_GameObject: {fileID: 4164442480461673277}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.00268, y: -0.00466, z: 0.00431}
-  m_LocalScale: {x: 0.00060738187, y: -0.00065974344, z: -0.0002499335}
+  m_LocalPosition: {x: -0.002405, y: -0.004566, z: 0.00431}
+  m_LocalScale: {x: 0.0012984972, y: -0.0007947571, z: -0.0002499335}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1520759293726364943}
@@ -1247,7 +1263,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 40c94ba23bdad4606aeafc60af54faa1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1290,6 +1306,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8022497590666034964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4164442480461673277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 825761717dda640b7b8473f0fc6d041c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactableName: Action2
+  highlightMaterial: {fileID: 2100000, guid: fed22790ce10d49eebee23f4955c15a6, type: 2}
 --- !u!1 &4176751044328583427
 GameObject:
   m_ObjectHideFlags: 0
@@ -2561,9 +2591,10 @@ GameObject:
   - component: {fileID: 1946497272099891820}
   - component: {fileID: 845971128943805670}
   - component: {fileID: 8587157465932211764}
+  - component: {fileID: 6731735277797115153}
   m_Layer: 0
   m_Name: Action3
-  m_TagString: Untagged
+  m_TagString: Interactable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2577,8 +2608,8 @@ Transform:
   m_GameObject: {fileID: 7742620569665649965}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.00215, y: -0.00308, z: 0.00431}
-  m_LocalScale: {x: 0.00060738187, y: -0.00065974344, z: -0.0002499335}
+  m_LocalPosition: {x: 0.00179, y: -0.00313, z: 0.00431}
+  m_LocalScale: {x: 0.0012948212, y: -0.0007788931, z: -0.0002499335}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1520759293726364943}
@@ -2614,7 +2645,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 40c94ba23bdad4606aeafc60af54faa1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2657,6 +2688,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6731735277797115153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7742620569665649965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 825761717dda640b7b8473f0fc6d041c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactableName: Action3
+  highlightMaterial: {fileID: 2100000, guid: fed22790ce10d49eebee23f4955c15a6, type: 2}
 --- !u!1 &7793356340224908203
 GameObject:
   m_ObjectHideFlags: 0
@@ -3336,7 +3381,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2202413024
+  GlobalObjectIdHash: 3949263627
   InScenePlacedSourceGlobalObjectIdHash: 2761438999
   DeferredDespawnTick: 0
   Ownership: 1
@@ -3432,9 +3477,10 @@ GameObject:
   - component: {fileID: 3669285014700243593}
   - component: {fileID: 5826988764752768390}
   - component: {fileID: 4943714592113163090}
+  - component: {fileID: 7809768936525217355}
   m_Layer: 0
   m_Name: Action1
-  m_TagString: Untagged
+  m_TagString: Interactable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3448,8 +3494,8 @@ Transform:
   m_GameObject: {fileID: 9096933293616642554}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.00216, y: -0.00456, z: 0.00431}
-  m_LocalScale: {x: 0.00060738187, y: -0.00065974344, z: -0.0002499335}
+  m_LocalPosition: {x: 0.00179, y: -0.00456, z: 0.00431}
+  m_LocalScale: {x: 0.0012957884, y: -0.00081986317, z: -0.0002499335}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1520759293726364943}
@@ -3485,7 +3531,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 40c94ba23bdad4606aeafc60af54faa1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3528,6 +3574,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7809768936525217355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9096933293616642554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 825761717dda640b7b8473f0fc6d041c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactableName: Action1
+  highlightMaterial: {fileID: 2100000, guid: fed22790ce10d49eebee23f4955c15a6, type: 2}
 --- !u!1 &9143832721707173368
 GameObject:
   m_ObjectHideFlags: 0
