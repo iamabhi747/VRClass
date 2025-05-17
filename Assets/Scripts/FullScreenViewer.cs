@@ -31,6 +31,7 @@ public class FullScreenViewer : NetworkBehaviour
     public void Show()
     {
         if (active) return;
+        Debug.Log("Show Fullscreen Viewer, loadedTextures.Count: " + loadedTextures.Count);
         if (loadedTextures.Count == 0) return;
 
         prevLockState = Cursor.lockState;
@@ -96,6 +97,7 @@ public class FullScreenViewer : NetworkBehaviour
 
     public void AddImage(byte[] imageData)
     {
+        Debug.Log("Adding image to FullScreenViewer");
         loadedTextures.Add(imageData);
     }
 

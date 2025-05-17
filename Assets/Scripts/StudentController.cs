@@ -15,6 +15,8 @@ public class StudentController : NetworkBehaviour
     private float horizontalLookRotation = 0f;
 
     private Highlighter lastHighlightedButton;
+    private GameObject fullscreenCanvasPointer;
+    private FullScreenViewer fullScreenViewer;
 
     private GameObject Action1;
     private GameObject Action2;
@@ -61,6 +63,17 @@ public class StudentController : NetworkBehaviour
         }
 
         // netName.OnValueChanged += OnNameChanged;
+
+        fullscreenCanvasPointer = GameObject.Find("FullScreenCanvasPointer");
+        if (fullscreenCanvasPointer != null)
+        {
+            fullScreenViewer = fullscreenCanvasPointer.GetComponent<FullScreenViewer>();
+            Debug.Log("FullScreenViewer found: " + fullScreenViewer);
+        }
+        else
+        {
+            Debug.LogError("FullScreenCanvas GameObject not found!");
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -127,13 +140,16 @@ public class StudentController : NetworkBehaviour
                 }
 
                 // Handle interaction
-                if (Input.GetKeyDown(KeyCode.E) && highlighter != null)
+                if ((Input.GetKeyDown(KeyCode.E) || Input.GetButtonDown("Fire1")) && highlighter != null)
                 {
                     var name = highlighter.getName();
+                    Debug.Log("Clicked on: " + name);
 
                     if (name == "Action1")
                     {
-
+                        Debug.Log("Action1 clicked");
+                        if (fullScreenViewer != null)
+                            fullScreenViewer.Show();
                     }
                     else if (name == "Action2")
                     {

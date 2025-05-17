@@ -7,7 +7,7 @@ using SFB;
 public class BoardImageDisplay : NetworkBehaviour
 {
     [Header("UI References")]
-    [SerializeField] private Canvas fullscreenCanvas;
+    [SerializeField] private GameObject fullscreenCanvasPointer;
 
     private const int k_MaxBytes = 1024 * 1024;
     private List<byte[]> loadedTextures = new List<byte[]>();
@@ -17,8 +17,10 @@ public class BoardImageDisplay : NetworkBehaviour
 
     public void Start()
     {
-        if (fullscreenCanvas != null)
-            fullScreenViewer = fullscreenCanvas.GetComponent<FullScreenViewer>();
+        if (fullscreenCanvasPointer != null)
+            fullScreenViewer = fullscreenCanvasPointer.GetComponent<FullScreenViewer>();
+        Debug.Log("BoardImageDisplay Start: {IsOwner: " + IsOwner + "}");
+        Debug.Log("FullScreenViewer: " + fullScreenViewer);
     }
 
     public void PickAndUploadImage()
