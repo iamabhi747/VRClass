@@ -1,5 +1,18 @@
 {
+  "scopedRegistries": [
+    {
+        "name": "Keijiro",
+        "url": "https://registry.npmjs.com",
+        "scopes": [ "jp.keijiro" ]
+    },
+    {
+        "name": "creativeikep",
+        "url": "https://registry.npmjs.com",
+        "scopes": [ "jp.ikep" ]
+    }
+  ],
   "dependencies": {
+    "jp.ikep.holistic-motion-capture": "1.1.0",
     "com.unity.collab-proxy": "2.9.1",
     "com.unity.feature.development": "1.0.1",
     "com.unity.textmeshpro": "3.0.6",
