@@ -12,7 +12,7 @@ public class Vivox : MonoBehaviour
     {
         InitializeAsync();
         // LoginToVivoxAsync();
-        JoinEchoChannelAsync(); 
+        JoinChannelAsync(); 
     }
 
     // Update is called once per frame
@@ -54,10 +54,10 @@ public class Vivox : MonoBehaviour
         Debug.Log("Logged in to Vivox as: " + options.DisplayName);
     }
 
-    public async void JoinEchoChannelAsync()
+    public async void JoinChannelAsync()
     {
         string channelToJoin = "Lobby";
-        await VivoxService.Instance.JoinEchoChannelAsync(channelToJoin, ChatCapability.TextAndAudio);
-        Debug.Log("Joined Echo Channel: " + channelToJoin);
+        await VivoxService.Instance.JoinGroupChannelAsync(channelToJoin, ChatCapability.TextAndAudio);
+        Debug.Log("Joined Channel: " + channelToJoin);
     }
 }
