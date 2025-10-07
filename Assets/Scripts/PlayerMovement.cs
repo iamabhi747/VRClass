@@ -1,8 +1,7 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Netcode;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : NetworkBehaviour
 {
     // Variables
     [SerializeField] private float moveSpeed = 0f;
@@ -25,6 +24,14 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float gravity;
     [SerializeField] private float jumpHeight;
 
+    // Networked Variables
+    public NetworkVariable<Vector3> nPosition = new NetworkVariable<Vector3>();
+    public NetworkVariable<float> nRotationY = new NetworkVariable<float>();
+    public NetworkVariable<Vector3> nLookAtPosition = new NetworkVariable<Vector3>();
+    public NetworkVariable<Vector3> nVelocity = new NetworkVariable<Vector3>();
+    public NetworkVariable<bool> nIsGrounded = new NetworkVariable<bool>();
+    public NetworkVariable<float> nAnimSpeed = new NetworkVariable<float>();
+
     // References
     private CharacterController characterController;
     private Animator animator;
@@ -33,7 +40,7 @@ public class PlayerMovement : MonoBehaviour
 
     // Methods
 
-    private void Start()
+    private void Awake()
     {
         characterController = GetComponent<CharacterController>();
         animator = GetComponentInChildren<Animator>();
@@ -48,22 +55,36 @@ public class PlayerMovement : MonoBehaviour
         GameObject animatorObject = animator.gameObject;
         var ikProxy = animatorObject.AddComponent<IKProxy>();
         ikProxy.playerMovementScript = this;
-
-        SetMouseInputEnabled(true);
     }
 
     private void Update()
     {
-        Move();
-        Rotate();
+        if (IsOwner)
+        {
+            Move();
+            Rotate();
 
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            SetMouseInputEnabled(false);
+            SyncPlayerServerRpc(
+                transform.position,
+                transform.eulerAngles.y,
+                lookAtPosition,
+                velocity,
+                isGrounded,
+                animator.GetFloat("Speed")
+            );
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                SetMouseInputEnabled(false);
+            }
+            else if (Input.GetMouseButtonDown(0))
+            {
+                SetMouseInputEnabled(true);
+            }
         }
-        else if (Input.GetMouseButtonDown(0))
+        else
         {
-            SetMouseInputEnabled(true);
+            SyncPlayerClient();
         }
     }
 
@@ -135,9 +156,9 @@ public class PlayerMovement : MonoBehaviour
             moveDirection *= moveSpeed;
 
             // Auto-align body to head direction when moving (smooth body rotation)
-            if (moveDirection.magnitude > 0.1f && Mathf.Abs(horizontalHeadRotation) > 5f)
+            if (moveDirection.magnitude > 0.1f && Mathf.Abs(horizontalHeadRotation) > 0.1f)
             {
-                float bodyRotationAmount = horizontalHeadRotation * Time.deltaTime * 4f;
+                float bodyRotationAmount = horizontalHeadRotation * Time.deltaTime * 10f;
                 transform.Rotate(0, bodyRotationAmount, 0);
                 horizontalHeadRotation -= bodyRotationAmount;
                 // Clamp after modification
@@ -150,14 +171,13 @@ public class PlayerMovement : MonoBehaviour
             //     velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             // }
         }
-
         characterController.Move(moveDirection * Time.deltaTime);
 
         velocity.y += gravity * Time.deltaTime;
         characterController.Move(velocity * Time.deltaTime);
     }
 
-    public void Rotate()
+    private void Rotate()
     {
         if (!mouseInputEnabled) return;
 
@@ -190,4 +210,70 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    // Network synchronization Methods
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            nPosition.Value = transform.position;
+            nRotationY.Value = transform.eulerAngles.y;
+            nLookAtPosition.Value = lookAtPosition;
+            nVelocity.Value = velocity;
+            nIsGrounded.Value = isGrounded;
+        }
+
+        playerCamera.enabled = IsOwner;
+        characterController.enabled = true;
+
+        AudioListener audioListener = playerCamera.GetComponent<AudioListener>();
+        if (audioListener != null) audioListener.enabled = IsOwner;
+
+        if (IsOwner)
+        {
+            SetMouseInputEnabled(true);
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (IsOwner)
+        {
+            SetMouseInputEnabled(false);
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    public void SyncPlayerServerRpc(
+        Vector3 _position,
+        float _rotationY,
+        Vector3 _lookAtPosition,
+        Vector3 _velocity,
+        bool _isGrounded,
+        float _animSpeed,
+        RpcParams rpcParams = default
+    )
+    {
+        if (!IsServer) return;
+
+        nPosition.Value = _position;
+        nRotationY.Value = _rotationY;
+        nLookAtPosition.Value = _lookAtPosition;
+        nVelocity.Value = _velocity;
+        nIsGrounded.Value = _isGrounded;
+        nAnimSpeed.Value = _animSpeed;
+    }
+
+    private void SyncPlayerClient()
+    {
+        if (IsOwner) return;
+
+        transform.position = Vector3.Lerp(transform.position, nPosition.Value, 10f * Time.deltaTime);
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, nRotationY.Value, 0), 10f * Time.deltaTime);
+        lookAtPosition = Vector3.Lerp(lookAtPosition, nLookAtPosition.Value, 10f * Time.deltaTime);
+        velocity = Vector3.Lerp(velocity, nVelocity.Value, 10f * Time.deltaTime);
+        isGrounded = nIsGrounded.Value;
+
+        animator.SetFloat("Speed", nAnimSpeed.Value, 0.1f, Time.deltaTime);
+    } 
 }
