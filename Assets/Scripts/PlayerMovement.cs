@@ -17,6 +17,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 lookAtPosition;
     private Vector3 moveDirection;
     private Vector3 velocity;
+    private bool mouseInputEnabled = false;
 
     [SerializeField] private bool isGrounded;
     [SerializeField] private float groundCheckDistance;
@@ -48,19 +49,42 @@ public class PlayerMovement : MonoBehaviour
         var ikProxy = animatorObject.AddComponent<IKProxy>();
         ikProxy.playerMovementScript = this;
 
-        Cursor.lockState = CursorLockMode.Locked;
+        SetMouseInputEnabled(true);
     }
 
     private void Update()
     {
         Move();
         Rotate();
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SetMouseInputEnabled(false);
+        }
+        else if (Input.GetMouseButtonDown(0))
+        {
+            SetMouseInputEnabled(true);
+        }
     }
 
     private void ExecuteAnimatorIK()
     {
         animator.SetLookAtWeight(1.0f);
         animator.SetLookAtPosition(lookAtPosition);
+    }
+
+    private void SetMouseInputEnabled(bool enabled)
+    {
+        if (enabled && !mouseInputEnabled)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            mouseInputEnabled = true;
+        }
+        else if (!enabled && mouseInputEnabled)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            mouseInputEnabled = false;
+        }
     }
 
     private void Move()
@@ -135,6 +159,8 @@ public class PlayerMovement : MonoBehaviour
 
     public void Rotate()
     {
+        if (!mouseInputEnabled) return;
+
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
 
