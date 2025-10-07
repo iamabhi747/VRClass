@@ -248,9 +248,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 0
-  walkSpeed: 5
-  runSpeed: 7
+  walkSpeed: 2
+  runSpeed: 6
   mouseSensitivity: 300
+  verticalLookLimit: 30
+  horizontalLookLimit: 60
   isGrounded: 0
   groundCheckDistance: 0.2
   groundMask:
