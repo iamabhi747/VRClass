@@ -5,6 +5,8 @@ using Unity.Collections;
 
 public class NCNetworkManager : MonoBehaviour
 {
+    public static NCNetworkManager Instance { get; private set; }
+
     [System.Serializable]
     public class ConnectionPayload
     {
@@ -16,6 +18,7 @@ public class NCNetworkManager : MonoBehaviour
     {
         public string clientId;
         public string name;
+        public string avatarUrl;
 
         public string serverName;
 
@@ -24,6 +27,7 @@ public class NCNetworkManager : MonoBehaviour
             serializer.SerializeValue(ref clientId);
             serializer.SerializeValue(ref name);
             serializer.SerializeValue(ref serverName);
+            serializer.SerializeValue(ref avatarUrl);
         }
     }
 
@@ -32,6 +36,13 @@ public class NCNetworkManager : MonoBehaviour
 
     void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
         m_NetworkManager = GetComponent<NetworkManager>();
 
         // Get command line arguments for the process
@@ -60,6 +71,15 @@ public class NCNetworkManager : MonoBehaviour
         }
     }
 
+    public ClientData? GetClientData(ulong clientId)
+    {
+        if (m_approvedClients != null && m_approvedClients.TryGetValue(clientId, out ClientData data))
+        {
+            return data;
+        }
+        return null;
+    }
+
     private void StartClient(bool host = false)
     {
         ConfigureNetworkSettings();
@@ -76,6 +96,12 @@ public class NCNetworkManager : MonoBehaviour
         m_NetworkManager.NetworkConfig.ConnectionData = payloadBytes;
 
         if (!host) m_NetworkManager.OnClientStarted += OnClientStarted;
+        else
+        {
+            m_NetworkManager.ConnectionApprovalCallback += ServerApprovalCheck;
+            m_NetworkManager.OnClientConnectedCallback += OnClientConnected;
+            m_NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
+        }
 
         if (host) m_NetworkManager.StartHost();
         else m_NetworkManager.StartClient();
@@ -123,7 +149,8 @@ public class NCNetworkManager : MonoBehaviour
             {
                 clientId = payload.clientId,
                 name = $"Player_{request.ClientNetworkId}",
-                serverName = "TestServer"
+                serverName = "TestServer",
+                avatarUrl = "https://models.readyplayer.me/68cfbcc1621c04ac67af90cf.glb",
             };
             m_approvedClients[request.ClientNetworkId] = clientData;
 

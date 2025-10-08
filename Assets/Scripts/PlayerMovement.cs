@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using ReadyPlayerMe.Core;
 
 public class PlayerMovement : NetworkBehaviour
 {
@@ -17,6 +18,8 @@ public class PlayerMovement : NetworkBehaviour
     private Vector3 moveDirection;
     private Vector3 velocity;
     private bool mouseInputEnabled = false;
+    private bool isSpawned = false;
+    private AvatarObjectLoader avatarObjectLoader;
 
     [SerializeField] private bool isGrounded;
     [SerializeField] private float groundCheckDistance;
@@ -31,21 +34,63 @@ public class PlayerMovement : NetworkBehaviour
     public NetworkVariable<Vector3> nVelocity = new NetworkVariable<Vector3>();
     public NetworkVariable<bool> nIsGrounded = new NetworkVariable<bool>();
     public NetworkVariable<float> nAnimSpeed = new NetworkVariable<float>();
+    public NetworkVariable<NCNetworkManager.ClientData> nClientData = new NetworkVariable<NCNetworkManager.ClientData>();
 
     // References
     private CharacterController characterController;
     private Animator animator;
     private Camera playerCamera;
     private Transform headBone;
+    [SerializeField] private GameObject previewAvatar;
+    [SerializeField] private RuntimeAnimatorController animatorController;
 
     // Methods
 
     private void Awake()
     {
-        characterController = GetComponent<CharacterController>();
-        animator = GetComponentInChildren<Animator>();
-        playerCamera = GetComponentInChildren<Camera>();
+        avatarObjectLoader = new AvatarObjectLoader();
+        avatarObjectLoader.OnCompleted += OnSpawnLoad;
+        avatarObjectLoader.OnFailed += OnSpawnFailed;
 
+        characterController = GetComponent<CharacterController>();
+        playerCamera = GetComponentInChildren<Camera>();
+    }
+
+    private void SpawnRPM()
+    {
+        if (isSpawned) return;
+        Debug.Log("Spawning RPM Avatar...");
+        Debug.Log($"Client Data: {nClientData.Value.clientId}, {nClientData.Value.name}, {nClientData.Value.serverName}, {nClientData.Value.avatarUrl}");
+
+        avatarObjectLoader.LoadAvatar(nClientData.Value.avatarUrl);
+    }
+
+    private void OnSpawnLoad(object sender, CompletionEventArgs args)
+    {
+        Debug.Log("Avatar Loaded: " + args.Avatar.name);
+        GameObject avatarGo = args.Avatar;
+
+        // Parent the avatar under this player so Animator/Head can be found in SetupAfterSpawn
+        avatarGo.transform.SetParent(transform, worldPositionStays: false);
+        avatarGo.transform.localPosition = previewAvatar.transform.localPosition;
+        avatarGo.transform.localRotation = previewAvatar.transform.localRotation;
+
+        previewAvatar.SetActive(false);
+        Destroy(previewAvatar);
+
+        SetupAfterSpawn();
+        isSpawned = true;
+    }
+
+    private void OnSpawnFailed(object sender, FailureEventArgs args)
+    {
+        Debug.LogError("Avatar Load Failed: " + args.Message);
+    }
+
+    private void SetupAfterSpawn()
+    {
+        animator = GetComponentInChildren<Animator>();
+        animator.runtimeAnimatorController = animatorController;
         headBone = animator.GetBoneTransform(HumanBodyBones.Head);
         // Debug.Log("Head Bone: " + headBone.name);
 
@@ -59,6 +104,8 @@ public class PlayerMovement : NetworkBehaviour
 
     private void Update()
     {
+        if (!isSpawned) return;
+
         if (IsOwner)
         {
             Move();
@@ -221,6 +268,7 @@ public class PlayerMovement : NetworkBehaviour
             nLookAtPosition.Value = lookAtPosition;
             nVelocity.Value = velocity;
             nIsGrounded.Value = isGrounded;
+            nClientData.Value = NCNetworkManager.Instance.GetClientData(OwnerClientId) ?? new NCNetworkManager.ClientData();
         }
 
         playerCamera.enabled = IsOwner;
@@ -233,6 +281,8 @@ public class PlayerMovement : NetworkBehaviour
         {
             SetMouseInputEnabled(true);
         }
+
+        SpawnRPM();
     }
 
     public override void OnNetworkDespawn()

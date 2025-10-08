@@ -194,7 +194,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2988961959
+  GlobalObjectIdHash: 2719674945
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -240,6 +240,8 @@ MonoBehaviour:
     m_InternalValue: 0
   nAnimSpeed:
     m_InternalValue: 0
+  previewAvatar: {fileID: 7779886303788754179}
+  animatorController: {fileID: 9100000, guid: dee97609de4904b0bb1c8332b7c3de9f, type: 2}
 --- !u!1001 &7437374338406045778
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -304,5 +306,10 @@ PrefabInstance:
 --- !u!4 &6970558418435260345 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: bc435a797065141f39b5a07679dacee2, type: 3}
+  m_PrefabInstance: {fileID: 7437374338406045778}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7779886303788754179 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: bc435a797065141f39b5a07679dacee2, type: 3}
   m_PrefabInstance: {fileID: 7437374338406045778}
   m_PrefabAsset: {fileID: 0}

@@ -398,9 +398,9 @@ PlayerSettings:
   enableInternalProfiler: 0
   logObjCUncaughtExceptions: 1
   enableCrashReportAPI: 0
-  cameraUsageDescription: 
+  cameraUsageDescription: Photo to Avatar
   locationUsageDescription: 
-  microphoneUsageDescription: 
+  microphoneUsageDescription: Audio Sync
   bluetoothUsageDescription: 
   macOSTargetOSVersion: 10.13.0
   switchNMETAOverride: 
