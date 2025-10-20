@@ -5,6 +5,7 @@ using ReadyPlayerMe.Core;
 public class PlayerMovement : NetworkBehaviour
 {
     // Variables
+    public int Mode = NCNetworkManager.MDEFAULT;
     [SerializeField] private float moveSpeed = 0f;
     [SerializeField] private float walkSpeed = 2f;
     [SerializeField] private float runSpeed = 5f;
@@ -60,7 +61,7 @@ public class PlayerMovement : NetworkBehaviour
     {
         if (isSpawned) return;
         Debug.Log("Spawning RPM Avatar...");
-        Debug.Log($"Client Data: {nClientData.Value.clientId}, {nClientData.Value.name}, {nClientData.Value.serverName}, {nClientData.Value.avatarUrl}");
+        Debug.Log($"Client Data: {nClientData.Value.clientId}, {nClientData.Value.name}, {nClientData.Value.serverName}, {nClientData.Value.avatarUrl}, {nClientData.Value.mode}");
 
         avatarObjectLoader.LoadAvatar(nClientData.Value.avatarUrl);
     }
@@ -167,6 +168,7 @@ public class PlayerMovement : NetworkBehaviour
         float moveZ = Input.GetAxis("Vertical");
 
         moveDirection = new Vector3(0, 0, moveZ);
+        if (Mode == NCNetworkManager.MSTUDENT) moveDirection = Vector3.zero;
 
         if (isGrounded)
         {
@@ -282,6 +284,7 @@ public class PlayerMovement : NetworkBehaviour
             SetMouseInputEnabled(true);
         }
 
+        Mode = nClientData.Value.mode;
         SpawnRPM();
     }
 

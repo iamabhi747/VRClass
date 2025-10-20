@@ -6,6 +6,9 @@ using Unity.Collections;
 public class NCNetworkManager : MonoBehaviour
 {
     public static NCNetworkManager Instance { get; private set; }
+    public static readonly int MDEFAULT = 0;
+    public static readonly int MSTUDENT = 1;
+    public static readonly int MTEACHER = 2;
 
     [System.Serializable]
     public class ConnectionPayload
@@ -19,6 +22,7 @@ public class NCNetworkManager : MonoBehaviour
         public string clientId;
         public string name;
         public string avatarUrl;
+        public int mode;
 
         public string serverName;
 
@@ -28,6 +32,7 @@ public class NCNetworkManager : MonoBehaviour
             serializer.SerializeValue(ref name);
             serializer.SerializeValue(ref serverName);
             serializer.SerializeValue(ref avatarUrl);
+            serializer.SerializeValue(ref mode);
         }
     }
 
@@ -151,6 +156,7 @@ public class NCNetworkManager : MonoBehaviour
                 name = $"Player_{request.ClientNetworkId}",
                 serverName = "TestServer",
                 avatarUrl = "https://models.readyplayer.me/68cfbcc1621c04ac67af90cf.glb",
+                mode = MDEFAULT,
             };
             m_approvedClients[request.ClientNetworkId] = clientData;
 
@@ -217,7 +223,7 @@ public class NCNetworkManager : MonoBehaviour
     private void OnReceiveClientData(ulong serverId, FastBufferReader reader)
     {
         reader.ReadValueSafe(out ClientData data);
-        Debug.Log($"Received data from server: {data.clientId}, {data.name}, {data.serverName}");
+        Debug.Log($"Received data from server: {data.clientId}, {data.name}, {data.serverName}, {data.mode}");
     }
 }
 
