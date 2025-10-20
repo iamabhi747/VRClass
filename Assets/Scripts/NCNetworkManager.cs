@@ -23,6 +23,7 @@ public class NCNetworkManager : MonoBehaviour
         public string name;
         public string avatarUrl;
         public int mode;
+        public int positionIndex;
 
         public string serverName;
 
@@ -33,11 +34,14 @@ public class NCNetworkManager : MonoBehaviour
             serializer.SerializeValue(ref serverName);
             serializer.SerializeValue(ref avatarUrl);
             serializer.SerializeValue(ref mode);
+            serializer.SerializeValue(ref positionIndex);
         }
     }
 
     private NetworkManager m_NetworkManager;
     private Dictionary<ulong, ClientData> m_approvedClients;
+    private List<bool> studentSpawnPositionMarkers;
+    private GameObject studentSpawnPositionMarkersObj;
 
     void Awake()
     {
@@ -121,6 +125,14 @@ public class NCNetworkManager : MonoBehaviour
         m_NetworkManager.OnClientConnectedCallback += OnClientConnected;
         m_NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
         m_NetworkManager.StartServer();
+
+        studentSpawnPositionMarkersObj = GameObject.Find("StudentSpawnPositionMarkers");
+        if (studentSpawnPositionMarkersObj != null)
+        {
+            int markerCount = studentSpawnPositionMarkersObj.transform.childCount;
+            studentSpawnPositionMarkers = new List<bool>(new bool[markerCount]);
+            Debug.Log($"Initialized {markerCount} student spawn position markers.");
+        }
     }
 
     private void ConfigureNetworkSettings()
@@ -150,21 +162,49 @@ public class NCNetworkManager : MonoBehaviour
 
             // Handle Authentication here
 
-            var clientData = new ClientData
-            {
-                clientId = payload.clientId,
-                name = $"Player_{request.ClientNetworkId}",
-                serverName = "TestServer",
-                avatarUrl = "https://models.readyplayer.me/68cfbcc1621c04ac67af90cf.glb",
-                mode = MDEFAULT,
-            };
-            m_approvedClients[request.ClientNetworkId] = clientData;
+            var mode = MSTUDENT;
+            var positionIndex = -1;
 
             response.Approved = true;
             response.CreatePlayerObject = true;
 
             response.Position = Vector3.zero;
             response.Rotation = Quaternion.identity;
+
+            if (mode == MSTUDENT && studentSpawnPositionMarkersObj != null && studentSpawnPositionMarkers != null && studentSpawnPositionMarkers.Count > 0)
+            {
+                int emptyIndex = studentSpawnPositionMarkers.FindIndex(x => x == false);
+                Debug.Log($"Found empty student spawn position at index: {emptyIndex}");
+                if (emptyIndex != -1)
+                {
+                    var spawnMarker = studentSpawnPositionMarkersObj.transform.GetChild(emptyIndex);
+                    response.Position = spawnMarker.position;
+                    response.Rotation = spawnMarker.rotation;
+
+                    positionIndex = emptyIndex;
+                    Debug.Log($"Temp Assigned student spawn position at index: {emptyIndex} to clientId: {payload.clientId}");
+                }
+            }
+            else if (mode == MTEACHER)
+            {
+                GameObject teacherSpawnMarker = GameObject.Find("TeacherSpawnPositionMarker");
+                if (teacherSpawnMarker != null)
+                {
+                    response.Position = teacherSpawnMarker.transform.position;
+                    response.Rotation = teacherSpawnMarker.transform.rotation;
+                }
+            }
+
+            var clientData = new ClientData
+            {
+                clientId = payload.clientId,
+                name = $"Player_{request.ClientNetworkId}",
+                serverName = "TestServer",
+                avatarUrl = "https://models.readyplayer.me/68cfbcc1621c04ac67af90cf.glb",
+                mode = mode,
+                positionIndex = positionIndex,
+            };
+            m_approvedClients[request.ClientNetworkId] = clientData;
 
             Debug.Log($"Connection approved for clientId: {payload.clientId}");
         }
@@ -183,6 +223,11 @@ public class NCNetworkManager : MonoBehaviour
 
         if (m_approvedClients.TryGetValue(clientId, out var clientData))
         {
+            if (clientData.mode == MSTUDENT && clientData.positionIndex != -1)
+            {
+                studentSpawnPositionMarkers[clientData.positionIndex] = true;
+                Debug.Log($"Marked student spawn position at index: {clientData.positionIndex} as occupied for clientId: {clientData.clientId}");
+            }
             SendClientData(clientId, clientData);
         }
         else
