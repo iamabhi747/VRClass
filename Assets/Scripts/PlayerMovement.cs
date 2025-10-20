@@ -101,6 +101,8 @@ public class PlayerMovement : NetworkBehaviour
         GameObject animatorObject = animator.gameObject;
         var ikProxy = animatorObject.AddComponent<IKProxy>();
         ikProxy.playerMovementScript = this;
+
+        if (Mode == NCNetworkManager.MSTUDENT) animator.SetBool("Sit", true);
     }
 
     private void Update()
