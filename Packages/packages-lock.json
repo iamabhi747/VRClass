@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.michaelo.jwt": {
+      "version": "https://github.com/michael811125/JwtForUnity.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "c381ccc37e04f6ddd7c4457f34335c8f97dd627f"
+    },
     "com.readyplayerme.core": {
       "version": "https://github.com/readyplayerme/rpm-unity-sdk-core.git",
       "depth": 0,

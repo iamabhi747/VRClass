@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.michaelo.jwt": "https://github.com/michael811125/JwtForUnity.git",
     "com.readyplayerme.core": "https://github.com/readyplayerme/rpm-unity-sdk-core.git",
     "com.unity.collab-proxy": "2.9.1",
     "com.unity.feature.development": "1.0.1",

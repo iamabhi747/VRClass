@@ -26,6 +26,7 @@ public class NCNetworkManager : MonoBehaviour
         public int positionIndex;
 
         public string serverName;
+        public string error;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
@@ -35,13 +36,21 @@ public class NCNetworkManager : MonoBehaviour
             serializer.SerializeValue(ref avatarUrl);
             serializer.SerializeValue(ref mode);
             serializer.SerializeValue(ref positionIndex);
+            serializer.SerializeValue(ref error);
         }
+    }
+
+    [System.Serializable]
+    public class JWTSecretResponse
+    {
+        public string jwtSecret;
     }
 
     private NetworkManager m_NetworkManager;
     private Dictionary<ulong, ClientData> m_approvedClients;
     private List<bool> studentSpawnPositionMarkers;
     private GameObject studentSpawnPositionMarkersObj;
+    private string JWTSecret;
 
     void Awake()
     {
@@ -98,18 +107,19 @@ public class NCNetworkManager : MonoBehaviour
         var payload = new ConnectionPayload
         {
             clientId = System.Guid.NewGuid().ToString(),
-            authToken = System.Guid.NewGuid().ToString()
+            authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InBob2VuaXh4IiwibmFtZSI6IkpvaG4gRG9lIiwic2VydmVyTmFtZSI6IlRlc3QgU2VydmVyIiwiYXZhdGFyVXJsIjoiaHR0cHM6Ly9tb2RlbHMucmVhZHlwbGF5ZXIubWUvNjhjZmJjYzE2MjFjMDRhYzY3YWY5MGNmLmdsYiIsIm1vZGUiOjEsInBvc2l0aW9uSW5kZXgiOi0xfQ.1gNkRXxoDcP3-36YykoXNkh7rjZSSoFdULX0gvlCPAs",
         };
 
         var payloadBytes = System.Text.Encoding.UTF8.GetBytes(JsonUtility.ToJson(payload));
         m_NetworkManager.NetworkConfig.ConnectionData = payloadBytes;
+
+        m_NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
 
         if (!host) m_NetworkManager.OnClientStarted += OnClientStarted;
         else
         {
             m_NetworkManager.ConnectionApprovalCallback += ServerApprovalCheck;
             m_NetworkManager.OnClientConnectedCallback += OnClientConnected;
-            m_NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
         }
 
         if (host) m_NetworkManager.StartHost();
@@ -132,6 +142,26 @@ public class NCNetworkManager : MonoBehaviour
             int markerCount = studentSpawnPositionMarkersObj.transform.childCount;
             studentSpawnPositionMarkers = new List<bool>(new bool[markerCount]);
             Debug.Log($"Initialized {markerCount} student spawn position markers.");
+        }
+
+        var secretPath = System.IO.Path.Combine(Application.dataPath, "../jwt_secret.txt");
+        Debug.Log($"Loading JWT secret from: {secretPath}");
+        if (System.IO.File.Exists(secretPath))
+        {
+            try
+            {
+                JWTSecret = System.IO.File.ReadAllText(secretPath).Trim();
+                Debug.Log($"Loaded JWT secret. ({JWTSecret})");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to load JWT secret: {e.Message}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("JWT secret file not found.");
+            JWTSecret = "debug-secret--------------------";
         }
     }
 
@@ -159,10 +189,38 @@ public class NCNetworkManager : MonoBehaviour
         {
             var payloadJson = System.Text.Encoding.UTF8.GetString(connectionData);
             var payload = JsonUtility.FromJson<ConnectionPayload>(payloadJson);
+            ClientData clientData;
 
             // Handle Authentication here
+            try
+            {
+                string jwtJson = JWT.JsonWebToken.Decode(payload.authToken, JWTSecret);
+                clientData = JsonUtility.FromJson<ClientData>(jwtJson);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Authentication failed for clientID: {payload.clientId}, Error: Failed to verify JWT Token : {e.Message}");
+                response.Approved = false;
+                response.Reason = "Authentication failed:  Invalid Auth Token";
+                return;
+            }
 
-            var mode = MSTUDENT;
+            if (clientData.error != null)
+            {
+                Debug.LogError($"Authentication failed for clientId: {payload.clientId}, Error: {clientData.error}");
+                response.Approved = false;
+                response.Reason = "Authentication failed: " + clientData.error;
+                return;
+            }
+            else if (clientData.clientId == null || clientData.avatarUrl == null || clientData.name == null)
+            {
+                Debug.LogError($"Authentication failed for clientID: {payload.clientId}, Error: Invalid Data in Token");
+                response.Approved = false;
+                response.Reason = "Authentication failed: Invalid Data in Token";
+                return;
+            }
+
+            var mode = clientData.mode;
             var positionIndex = -1;
 
             response.Approved = true;
@@ -195,15 +253,8 @@ public class NCNetworkManager : MonoBehaviour
                 }
             }
 
-            var clientData = new ClientData
-            {
-                clientId = payload.clientId,
-                name = $"Player_{request.ClientNetworkId}",
-                serverName = "TestServer",
-                avatarUrl = "https://models.readyplayer.me/68cfbcc1621c04ac67af90cf.glb",
-                mode = mode,
-                positionIndex = positionIndex,
-            };
+            clientData.positionIndex = positionIndex;
+            clientData.error = string.Empty;
             m_approvedClients[request.ClientNetworkId] = clientData;
 
             Debug.Log($"Connection approved for clientId: {payload.clientId}");
@@ -239,9 +290,19 @@ public class NCNetworkManager : MonoBehaviour
     private void OnClientDisconnected(ulong clientId)
     {
         Debug.Log($"Client disconnected: {clientId}");
-        if (m_approvedClients.ContainsKey(clientId))
+        if (m_NetworkManager.IsServer && m_approvedClients.ContainsKey(clientId))
         {
             m_approvedClients.Remove(clientId);
+        }
+
+        if (m_NetworkManager.DisconnectReason != null)
+        {
+            Debug.Log($"Disconnect reason for {clientId}: {m_NetworkManager.DisconnectReason}");
+
+            if (!m_NetworkManager.IsServer && m_NetworkManager.LocalClientId == clientId)
+            {
+                // Handle disconnection / rejection on client-side
+            }
         }
     }
 
