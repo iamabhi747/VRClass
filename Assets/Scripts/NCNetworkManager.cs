@@ -26,6 +26,16 @@ public class NCNetworkManager : MonoBehaviour
     }
 
     [System.Serializable]
+    public class RegisterPayload
+    {
+        public string username;
+        public string email;
+        public int role;
+        public string password;
+        public string confirmPassword;
+    }
+
+    [System.Serializable]
     public class GenericResponse
     {
         public bool success;

@@ -181,7 +181,41 @@ public class APIGateway : MonoBehaviour
         OnResult,
         (errorMessage) =>
         {
-            OnResult?.Invoke(new NCNetworkManager.GenericResponse{ success = false, message = errorMessage });
+            OnResult?.Invoke(new NCNetworkManager.GenericResponse { success = false, message = errorMessage });
         });
+    }
+    
+    public static void Register(string username, string email, int role, string password, Action<NCNetworkManager.ConnectionPayload> OnSuccess, Action<string> OnError)
+    {
+        if (Instance == null)
+        {
+            Debug.LogError("APIGateway instance is not initialized.");
+            return;
+        }
+
+        var payload = new NCNetworkManager.RegisterPayload
+        {
+            username = username,
+            email = email,
+            role = role,
+            password = password
+        };
+        string url = Instance.host + "/register";
+        Instance.POSTJsonRequest<NCNetworkManager.RegisterPayload, NCNetworkManager.ConnectionPayload>(url, payload,
+        (authData) =>
+        {
+            if (authData != null && !string.IsNullOrEmpty(authData.error))
+            {
+                OnError?.Invoke(authData.error);
+                return;
+            }
+            else if (authData == null || string.IsNullOrEmpty(authData.authToken) || string.IsNullOrEmpty(authData.clientId))
+            {
+                OnError?.Invoke("Invalid registration response from server.");
+                return;
+            }
+
+            OnSuccess?.Invoke(authData);
+        }, OnError);
     }
 }

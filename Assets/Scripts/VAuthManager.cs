@@ -15,7 +15,6 @@ class VAuthManager: MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            LoadInitial();
         }
         else
         {
@@ -23,7 +22,7 @@ class VAuthManager: MonoBehaviour
         }
     }
 
-    private void LoadInitial()
+    public void LoadInitial(Action onComplete = null)
     {
         var authFilePath = Path.Combine(Application.persistentDataPath, "auth.json");
         if (File.Exists(authFilePath))
@@ -45,12 +44,14 @@ class VAuthManager: MonoBehaviour
                     {
                         isAuthenticated = true;
                         Debug.Log($"{TAG}: Loaded valid authentication data from file.");
+                        onComplete?.Invoke();
                     }
                     else
                     {
                         auth = null;
                         isAuthenticated = false;
                         Debug.Log($"{TAG}: Invalid Saved Token");
+                        onComplete?.Invoke();
                     }
                 });
             }
@@ -58,12 +59,14 @@ class VAuthManager: MonoBehaviour
             {
                 Debug.LogError($"{TAG}: Failed to load authentication data. Exception: {e.Message}");
                 isAuthenticated = false;
+                onComplete?.Invoke();
             }
         }
         else
         {
             Debug.Log($"{TAG}: No authentication data found. User is not authenticated.");
             isAuthenticated = false;
+            onComplete?.Invoke();
         }
     }
 
@@ -94,7 +97,7 @@ class VAuthManager: MonoBehaviour
     {
         return Instance != null && Instance.isAuthenticated;
     }
-    
+
     public void Login(string username, string password, Action<string> OnSuccess, Action<string> OnError)
     {
         if (username == String.Empty || password == String.Empty)
@@ -110,6 +113,32 @@ class VAuthManager: MonoBehaviour
             auth = authData;
             isAuthenticated = true;
             OnSuccess?.Invoke("Login Successful");
+            SaveAuthData();
+        }, OnError);
+    }
+    
+    public void Register(string name, string email, int role, string password, string confirmPassword, Action<string> OnSuccess, Action<string> OnError)
+    {
+        if (email == String.Empty || password == String.Empty || name == String.Empty || confirmPassword == String.Empty)
+        {
+            Debug.LogError($"{TAG}: Name, email, or password cannot be empty.");
+            isAuthenticated = false;
+            return;
+        }
+
+        if (password != confirmPassword)
+        {
+            Debug.LogError($"{TAG}: Password and confirm password do not match.");
+            isAuthenticated = false;
+            return;
+        }
+
+        APIGateway.Register(name, email, role, password,
+        (authData) =>
+        {
+            auth = authData;
+            isAuthenticated = true;
+            OnSuccess?.Invoke("Registration Successful");
             SaveAuthData();
         }, OnError);
     }
