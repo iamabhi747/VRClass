@@ -2,23 +2,23 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-    public class DebugPanel : MonoBehaviour
+public class DebugPanel : MonoBehaviour
+{
+    [SerializeField] private Text debugText;
+
+    private static Text text;
+
+    private void Awake()
     {
-        [SerializeField] private Text debugText;
+        text = debugText;
+    }
 
-        private static Text text;
-
-        private void Awake()
+    public static void AddLogWithDuration(string log, float time)
+    {
+        if (text != null)
         {
-            text = debugText;
-        }
-
-        public static void AddLogWithDuration(string log, float time)
-        {
-            if (text != null)
-            {
-                text.text += $"{log} <b>[{time:F2}s]</b>  \n";
-            }
+            text.text += $"{log} <b>[{time:F2}s]</b>  \n";
         }
     }
+}
 

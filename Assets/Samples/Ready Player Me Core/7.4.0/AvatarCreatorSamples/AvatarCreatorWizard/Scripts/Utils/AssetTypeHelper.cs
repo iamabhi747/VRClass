@@ -5,17 +5,17 @@ using System.Reflection;
 using ReadyPlayerMe.AvatarCreator;
 
 
-    public static class AssetTypeHelper
+public static class AssetTypeHelper
+{
+    public static IEnumerable<AssetType> GetAssetTypesByFilter(AssetFilter filter)
     {
-        public static IEnumerable<AssetType> GetAssetTypesByFilter(AssetFilter filter)
-        {
-            return Enum.GetValues(typeof(AssetType))
-                .Cast<AssetType>()
-                .Where(assetType =>
-                {
-                    var fieldInfo = typeof(AssetType).GetField(assetType.ToString());
-                    var attribute = fieldInfo?.GetCustomAttribute<AssetTypeFilterAttribute>();
-                    return attribute?.filter == filter;
-                });
-        }
+        return Enum.GetValues(typeof(AssetType))
+            .Cast<AssetType>()
+            .Where(assetType =>
+            {
+                var fieldInfo = typeof(AssetType).GetField(assetType.ToString());
+                var attribute = fieldInfo?.GetCustomAttribute<AssetTypeFilterAttribute>();
+                return attribute?.filter == filter;
+            });
     }
+}
