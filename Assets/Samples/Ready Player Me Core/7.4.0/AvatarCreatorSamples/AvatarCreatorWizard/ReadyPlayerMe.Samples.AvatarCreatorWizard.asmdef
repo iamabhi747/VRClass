@@ -3,7 +3,9 @@
     "rootNamespace": "",
     "references": [
         "ReadyPlayerMe.Core",
-        "ReadyPlayerMe.AvatarCreator"
+        "ReadyPlayerMe.AvatarCreator",
+        "Unity.TextMeshPro",
+        "Unity.TextMeshPro.Editor"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
