@@ -22,6 +22,21 @@ class VAuthManager: MonoBehaviour
         }
     }
 
+    private void RemoveFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"{TAG}: Failed to delete file. Exception: {e.Message}");
+        }
+    }
+    
     public void LoadInitial(Action onComplete = null)
     {
         var authFilePath = Path.Combine(Application.persistentDataPath, "auth.json");
@@ -52,6 +67,7 @@ class VAuthManager: MonoBehaviour
                         isAuthenticated = false;
                         Debug.Log($"{TAG}: Invalid Saved Token");
                         onComplete?.Invoke();
+                        RemoveFile(authFilePath);
                     }
                 });
             }
@@ -60,6 +76,7 @@ class VAuthManager: MonoBehaviour
                 Debug.LogError($"{TAG}: Failed to load authentication data. Exception: {e.Message}");
                 isAuthenticated = false;
                 onComplete?.Invoke();
+                RemoveFile(authFilePath);
             }
         }
         else
@@ -116,7 +133,7 @@ class VAuthManager: MonoBehaviour
             SaveAuthData();
         }, OnError);
     }
-    
+
     public void Register(string name, string email, int role, string password, string confirmPassword, Action<string> OnSuccess, Action<string> OnError)
     {
         if (email == String.Empty || password == String.Empty || name == String.Empty || confirmPassword == String.Empty)
@@ -141,5 +158,14 @@ class VAuthManager: MonoBehaviour
             OnSuccess?.Invoke("Registration Successful");
             SaveAuthData();
         }, OnError);
+    }
+    
+    public void Logout()
+    {
+        isAuthenticated = false;
+        auth = null;
+        var authFilePath = Path.Combine(Application.persistentDataPath, "auth.json");
+        RemoveFile(authFilePath);
+        Debug.Log($"{TAG}: User logged out and authentication data cleared.");
     }
 }
