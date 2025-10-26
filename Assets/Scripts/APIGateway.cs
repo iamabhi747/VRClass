@@ -136,4 +136,52 @@ public class APIGateway : MonoBehaviour
         }
     }
 
+    public static void Login(string username, string password, Action<NCNetworkManager.ConnectionPayload> OnSuccess, Action<string> OnError)
+    {
+        if (Instance == null)
+        {
+            Debug.LogError("APIGateway instance is not initialized.");
+            return;
+        }
+
+        var payload = new NCNetworkManager.LoginPayload
+        {
+            username = username,
+            password = password
+        };
+        string url = Instance.host + "/login";
+        Instance.POSTJsonRequest<NCNetworkManager.LoginPayload, NCNetworkManager.ConnectionPayload>(url, payload,
+        (authData) =>
+        {
+            if (authData != null && !string.IsNullOrEmpty(authData.error))
+            {
+                OnError?.Invoke(authData.error);
+                return;
+            }
+            else if (authData == null || string.IsNullOrEmpty(authData.authToken) || string.IsNullOrEmpty(authData.clientId))
+            {
+                OnError?.Invoke("Invalid login response from server.");
+                return;
+            }
+
+            OnSuccess?.Invoke(authData);
+        }, OnError);
+    }
+
+    public static void VerifyAuthToken(NCNetworkManager.ConnectionPayload payload, Action<NCNetworkManager.GenericResponse> OnResult)
+    {
+        if (Instance == null)
+        {
+            Debug.LogError("APIGateway instance is not initialized.");
+            return;
+        }
+
+        string url = Instance.host + "/verifytoken";
+        Instance.POSTJsonRequest<NCNetworkManager.ConnectionPayload, NCNetworkManager.GenericResponse>(url, payload,
+        OnResult,
+        (errorMessage) =>
+        {
+            OnResult?.Invoke(new NCNetworkManager.GenericResponse{ success = false, message = errorMessage });
+        });
+    }
 }

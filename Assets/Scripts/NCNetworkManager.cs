@@ -15,8 +15,23 @@ public class NCNetworkManager : MonoBehaviour
     {
         public string clientId;
         public string authToken;
+        public string error;
     }
 
+    [System.Serializable]
+    public class LoginPayload
+    {
+        public string username;
+        public string password;
+    }
+
+    [System.Serializable]
+    public class GenericResponse
+    {
+        public bool success;
+        public string message;
+    }
+    
     public struct ClientData : INetworkSerializable
     {
         public string clientId;
@@ -108,6 +123,7 @@ public class NCNetworkManager : MonoBehaviour
         {
             clientId = System.Guid.NewGuid().ToString(),
             authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InBob2VuaXh4IiwibmFtZSI6IkpvaG4gRG9lIiwic2VydmVyTmFtZSI6IlRlc3QgU2VydmVyIiwiYXZhdGFyVXJsIjoiaHR0cHM6Ly9tb2RlbHMucmVhZHlwbGF5ZXIubWUvNjhjZmJjYzE2MjFjMDRhYzY3YWY5MGNmLmdsYiIsIm1vZGUiOjEsInBvc2l0aW9uSW5kZXgiOi0xfQ.1gNkRXxoDcP3-36YykoXNkh7rjZSSoFdULX0gvlCPAs",
+            error = "",
         };
 
         var payloadBytes = System.Text.Encoding.UTF8.GetBytes(JsonUtility.ToJson(payload));
