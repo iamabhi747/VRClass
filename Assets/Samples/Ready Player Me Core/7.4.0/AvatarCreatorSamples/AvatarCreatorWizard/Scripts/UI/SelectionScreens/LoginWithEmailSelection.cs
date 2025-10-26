@@ -4,8 +4,7 @@ using ReadyPlayerMe.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class LoginWithEmailSelection : State
     {
         private const string TAG = nameof(LoginWithEmailSelection);
@@ -136,4 +135,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             SDKLogger.Log(TAG, $"Login failed with error: {error}");
         }
     }
-}
+

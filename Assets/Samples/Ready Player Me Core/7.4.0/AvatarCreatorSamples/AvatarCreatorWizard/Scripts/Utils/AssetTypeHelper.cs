@@ -4,8 +4,7 @@ using System.Linq;
 using System.Reflection;
 using ReadyPlayerMe.AvatarCreator;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public static class AssetTypeHelper
     {
         public static IEnumerable<AssetType> GetAssetTypesByFilter(AssetFilter filter)
@@ -20,4 +19,3 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
                 });
         }
     }
-}

@@ -5,8 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class ReloadPreviouslyEditedAvatar : MonoBehaviour
     {
         private const string TAG = nameof(ReloadPreviouslyEditedAvatar);
@@ -63,4 +62,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             avatarId = null;
         }
     }
-}
+

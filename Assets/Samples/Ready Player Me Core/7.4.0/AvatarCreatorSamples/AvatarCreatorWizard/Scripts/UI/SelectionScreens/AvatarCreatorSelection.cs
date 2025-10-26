@@ -10,8 +10,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TaskExtensions = ReadyPlayerMe.AvatarCreator.TaskExtensions;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class AvatarCreatorSelection : State, IDisposable
     {
         private const string TAG = nameof(AvatarCreatorSelection);
@@ -376,4 +375,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             avatarManager?.Dispose();
         }
     }
-}
+

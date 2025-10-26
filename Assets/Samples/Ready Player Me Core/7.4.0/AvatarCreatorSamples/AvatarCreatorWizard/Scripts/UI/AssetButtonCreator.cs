@@ -4,8 +4,7 @@ using ReadyPlayerMe.AvatarCreator;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class AssetButtonCreator : MonoBehaviour
     {
         [SerializeField] private GameObject assetButtonPrefab;
@@ -230,4 +229,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
         }
 
     }
-}
+

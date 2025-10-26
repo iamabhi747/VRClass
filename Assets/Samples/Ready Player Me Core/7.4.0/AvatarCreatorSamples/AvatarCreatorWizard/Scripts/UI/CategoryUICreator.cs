@@ -5,8 +5,7 @@ using ReadyPlayerMe.AvatarCreator;
 using ReadyPlayerMe.Core;
 using UnityEngine;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class CategoryUICreator : MonoBehaviour
     {
         [Serializable]
@@ -195,4 +194,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             cameraZoom.ToFaceView();
         }
     }
-}
+

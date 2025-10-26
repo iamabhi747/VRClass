@@ -3,8 +3,7 @@ using ReadyPlayerMe.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class GenderSelection : State
     {
         [SerializeField] private Button male;
@@ -64,4 +63,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             StateMachine.SetState(StateType.LoginWithCodeFromEmail);
         }
     }
-}
+

@@ -6,8 +6,7 @@ using ReadyPlayerMe.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class DefaultAvatarSelection : State
     {
         private const string TAG = nameof(DefaultAvatarSelection);
@@ -101,4 +100,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             StateMachine.SetState(StateType.Editor);
         }
     }
-}
+

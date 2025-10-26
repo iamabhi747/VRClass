@@ -6,8 +6,7 @@ using ReadyPlayerMe.AvatarCreator;
 using ReadyPlayerMe.Core;
 using UnityEngine;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class ProfileManager : MonoBehaviour
     {
         private const string TAG = nameof(ProfileManager);
@@ -89,4 +88,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             SDKLogger.Log(TAG, $"Deleted session at {filePath}");
         }
     }
-}
+

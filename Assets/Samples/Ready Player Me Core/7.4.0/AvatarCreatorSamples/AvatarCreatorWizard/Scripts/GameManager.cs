@@ -2,8 +2,7 @@
 using ReadyPlayerMe.Core;
 using UnityEngine;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class GameManager : MonoBehaviour
     {
         [SerializeField] private AvatarCreatorStateMachine avatarCreatorStateMachine;
@@ -38,4 +37,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             avatarObjectLoader.LoadAvatar($"{Env.RPM_MODELS_BASE_URL}/{avatarId}.glb");
         }
     }
-}
+

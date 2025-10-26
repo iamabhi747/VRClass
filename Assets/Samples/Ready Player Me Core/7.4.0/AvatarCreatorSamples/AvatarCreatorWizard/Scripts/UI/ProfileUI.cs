@@ -2,8 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class ProfileUI : MonoBehaviour
     {
         [SerializeField] private Text username;
@@ -51,4 +50,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             userPanel.SetActive(!userPanel.activeSelf);
         }
     }
-}
+

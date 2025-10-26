@@ -2,8 +2,7 @@
 using ReadyPlayerMe.AvatarCreator;
 using UnityEngine;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public static class PanelSwitcher
     {
         public static Dictionary<AssetType, GameObject> CategoryPanelMap { get; private set; }
@@ -88,4 +87,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             }
         }
     }
-}
+

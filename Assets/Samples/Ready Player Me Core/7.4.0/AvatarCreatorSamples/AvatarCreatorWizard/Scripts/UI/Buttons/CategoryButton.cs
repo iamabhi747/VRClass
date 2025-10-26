@@ -3,8 +3,7 @@ using ReadyPlayerMe.AvatarCreator;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class CategoryButton : MonoBehaviour
     {
         [SerializeField] private Image icon;
@@ -43,4 +42,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             button.interactable = isInteractable;
         }
     }
-}
+

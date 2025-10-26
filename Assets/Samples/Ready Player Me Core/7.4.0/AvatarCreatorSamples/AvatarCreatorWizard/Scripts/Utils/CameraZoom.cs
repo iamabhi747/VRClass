@@ -1,9 +1,8 @@
 using System.Threading;
-using ReadyPlayerMe.AvatarCreator;
+using ReadyPlayerMe;
 using UnityEngine;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class CameraZoom : MonoBehaviour
     {
         [SerializeField] private Transform cameraTransform;
@@ -38,4 +37,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             cameraTransform.position = halfBodyTransform.transform.position;
         }
     }
-}
+

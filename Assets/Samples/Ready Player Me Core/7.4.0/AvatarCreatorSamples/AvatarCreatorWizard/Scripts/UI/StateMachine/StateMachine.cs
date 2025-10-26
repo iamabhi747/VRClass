@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public abstract class StateMachine : MonoBehaviour
     {
         private readonly Stack<StateType> previousStates = new Stack<StateType>();
@@ -74,4 +73,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             state.DeactivateState();
         }
     }
-}
+

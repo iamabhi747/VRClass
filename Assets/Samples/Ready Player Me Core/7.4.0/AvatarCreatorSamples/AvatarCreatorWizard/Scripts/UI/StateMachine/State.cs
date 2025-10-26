@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public enum StateType
     {
         None,
@@ -35,4 +34,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             gameObject.SetActive(false);
         }
     }
-}
+

@@ -4,8 +4,7 @@ using ReadyPlayerMe.AvatarCreator;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class CameraPhotoSelection : State
     {
         [SerializeField] private RawImage rawImage;
@@ -91,4 +90,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
 #endif
         }
     }
-}
+

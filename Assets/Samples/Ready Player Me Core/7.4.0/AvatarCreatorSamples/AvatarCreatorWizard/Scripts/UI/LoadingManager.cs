@@ -2,8 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class LoadingManager : MonoBehaviour
     {
         public enum LoadingType
@@ -63,4 +62,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             }
         }
     }
-}
+

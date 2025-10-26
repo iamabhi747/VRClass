@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class SeflieSelection : State
     {
         private const string TERMS_URL = "https://readyplayer.me/terms";
@@ -52,4 +51,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             Application.OpenURL(PRIVACY_URL);
         }
     }
-}
+

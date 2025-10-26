@@ -2,8 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class AssetButton : MonoBehaviour
     {
         [SerializeField] private RawImage icon;
@@ -49,4 +48,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             mask.GetComponent<Image>().color = Color.white;
         }
     }
-}
+

@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
-{
+
     public class DebugPanel : MonoBehaviour
     {
         [SerializeField] private Text debugText;
@@ -22,4 +21,4 @@ namespace ReadyPlayerMe.Samples.AvatarCreatorWizard
             }
         }
     }
-}
+
