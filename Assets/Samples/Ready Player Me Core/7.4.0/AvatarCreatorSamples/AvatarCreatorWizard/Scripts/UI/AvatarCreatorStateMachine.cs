@@ -41,7 +41,14 @@ public class AvatarCreatorStateMachine : StateMachine
         avatarCreatorData.AvatarProperties.Gender = defaultGender;
         Initialize();
 
-        SetState(profileManager.LoadSession() ? StateType.AvatarSelection : startingState);
+        // SetState(profileManager.LoadSession() ? StateType.AvatarSelection : startingState);
+        // ShowLoadPreviousAvatarPopup();
+    }
+
+    private void Activate()
+    {
+        Debug.Log("Activating AvatarCreatorStateMachine.");
+        SetState(startingState);
         ShowLoadPreviousAvatarPopup();
     }
 
@@ -97,6 +104,9 @@ public class AvatarCreatorStateMachine : StateMachine
             state.Initialize(this, avatarCreatorData, loadingManager);
         }
         base.Initialize(states);
+
+        Debug.Log("Initializing UWBStateMachine from AvatarCreatorStateMachine.");
+        UWBStateMachine.Instance.Initialize(loadingManager, Activate);
     }
 
     private void OnStateChanged(StateType current, StateType previous)

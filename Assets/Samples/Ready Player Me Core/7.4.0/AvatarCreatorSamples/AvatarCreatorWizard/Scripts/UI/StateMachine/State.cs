@@ -6,6 +6,7 @@ public enum StateType
     None,
     VLogin,
     VRegister,
+    VTest,
     LoginWithCodeFromEmail,
     AvatarSelection,
     GenderSelection,
@@ -24,6 +25,8 @@ public abstract class State : MonoBehaviour
 
     public abstract StateType StateType { get; }
     public abstract StateType NextState { get; }
+    public virtual bool WebState => false;
+    public virtual string WebURL => "";
 
     public abstract void ActivateState();
     public abstract void DeactivateState();

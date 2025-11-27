@@ -63,13 +63,28 @@ public abstract class StateMachine : MonoBehaviour
 
     private void ActivateState(State state)
     {
-        state.gameObject.SetActive(true);
-        state.ActivateState();
+        if (state.WebState)
+        {
+            UWBStateMachine.ActivateState(state);
+        }
+        else
+        {
+            state.gameObject.SetActive(true);
+            state.ActivateState();
+        }
     }
 
     private void DeactivateState(State state)
     {
-        state.gameObject.SetActive(false);
+        if (state.WebState)
+        {
+            UWBStateMachine.SetActive(false);
+        }
+        else
+        {
+            state.gameObject.SetActive(false);
+        }
+
         state.DeactivateState();
     }
 }
