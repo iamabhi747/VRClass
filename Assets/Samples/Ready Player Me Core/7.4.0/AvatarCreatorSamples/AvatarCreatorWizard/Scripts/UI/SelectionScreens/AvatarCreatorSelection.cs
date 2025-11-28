@@ -27,7 +27,7 @@ public class AvatarCreatorSelection : State, IDisposable
     private AvatarManager avatarManager;
 
     private GameObject currentAvatar;
-    private Quaternion lastRotation;
+    private Quaternion lastRotation = new Quaternion(0f, 0f, 0f, 0f);
 
     private CancellationTokenSource ctxSource = new();
     public List<AssetType> categoriesAssetsLoaded;
