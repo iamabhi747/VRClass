@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 using VoltstroStudios.UnityWebBrowser;
 using VoltstroStudios.UnityWebBrowser.Core;
+using System.Collections.Generic;
 
 public class UWBStateMachine : MonoBehaviour
 {
@@ -16,6 +18,7 @@ public class UWBStateMachine : MonoBehaviour
     private State currentState;
     private bool isInitialized = false;
     private Action OnClientInitialized;
+    private Dictionary<string, Action<JObject, string>> bridgeFunctions = new Dictionary<string, Action<JObject, string>>();
 
 
     private void Awake()
@@ -41,6 +44,8 @@ public class UWBStateMachine : MonoBehaviour
         }
         webBrowserClient = clientManager.browserClient;
         webBrowserClient.OnLoadFinish += OnLoadFinish;
+
+        webBrowserClient.RegisterJsMethod<string, string, string>("UWBBridge", UWBBridge);
     }
 
     public void Initialize(LoadingManager loadingManager, Action onInitialized = null)
@@ -50,6 +55,14 @@ public class UWBStateMachine : MonoBehaviour
         WebRendererPrefab.SetActive(true);
 
         Debug.Log("UWBStateMachine initializing.");
+    }
+
+    private void OnDestroy()
+    {
+        if (webBrowserClient != null)
+        {
+            webBrowserClient.OnLoadFinish -= OnLoadFinish;
+        }
     }
 
     public static void SetActive(bool isActive)
@@ -111,6 +124,79 @@ public class UWBStateMachine : MonoBehaviour
         {
             currentState.ActivateState();
             SetActive(true);
+        }
+    }
+
+    public static void ExecuteJs(string script)
+    {
+        if (Instance == null || Instance.webBrowserClient == null)
+        {
+            Debug.LogWarning("UWBStateMachine instance or WebBrowserClient is not available.");
+            return;
+        }
+        Instance.webBrowserClient.ExecuteJs(script);
+    }
+
+    public static void registerBridgeFunction(string functionName, Action<JObject, string> action)
+    {
+        if (Instance == null)
+        {
+            Debug.LogWarning("UWBStateMachine instance is not available.");
+            return;
+        }
+        if (!Instance.bridgeFunctions.ContainsKey(functionName))
+        {
+            Instance.bridgeFunctions.Add(functionName, action);
+        }
+        else
+        {
+            Debug.LogWarning($"Bridge function {functionName} is already registered.");
+        }
+    }
+
+    public static void invokeCallback(string callbackId, JObject argObject)
+    {
+        // Build a JS call without injecting raw, unescaped content
+        string callbackIdJson = Newtonsoft.Json.JsonConvert.SerializeObject(callbackId ?? string.Empty);
+        string argJson = argObject != null
+            ? argObject.ToString(Newtonsoft.Json.Formatting.None)
+            : "null";
+
+        string script = $"resolveCallback({callbackIdJson}, '{argJson}');";
+        Debug.Log("Invoking callback with script: " + script);
+        ExecuteJs(script);
+    }
+
+    private void UWBBridge(string funcName, string arg, string callbackId)
+    {
+        Debug.Log($"UWBBridge called with funcName: {funcName}, arg: {arg}, callbackId: {callbackId}");
+        
+        try
+        {
+            JObject argObject = JObject.Parse(arg);
+
+            if (bridgeFunctions.TryGetValue(funcName, out var action))
+            {
+                action.Invoke(argObject, callbackId);
+            }
+            else
+            {
+                Debug.LogWarning($"No bridge function found for: {funcName}");
+                invokeCallback(callbackId, JObject.FromObject(new
+                {
+                    status = 500,
+                    message = $"No bridge function found for: {funcName}"
+                }));
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to parse argument JSON in UWBBridge. Exception: {e.Message}");
+            invokeCallback(callbackId, JObject.FromObject(new
+            {
+                status = 500,
+                message = $"Failed to parse argument JSON in UWBBridge. Exception: {e.Message}"
+            }));
         }
     }
 }

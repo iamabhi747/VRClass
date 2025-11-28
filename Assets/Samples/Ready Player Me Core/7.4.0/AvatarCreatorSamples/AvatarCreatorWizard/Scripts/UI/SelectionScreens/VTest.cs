@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 public class VTest : State
 {
@@ -7,7 +8,7 @@ public class VTest : State
     public override StateType NextState => StateType.GenderSelection;
 
     public override bool WebState => true;
-    public override string WebURL => "https://example.com/";
+    public override string WebURL => "http://localhost:4173/";
 
     public override void ActivateState()
     {
@@ -21,10 +22,23 @@ public class VTest : State
                 StateMachine.SetState(NextState);
             }
         });
+
+        UWBStateMachine.registerBridgeFunction("TestFunction", TestFunction);
     }
 
     public override void DeactivateState()
     {
+    }
+
+    private void TestFunction(JObject arg, string callbackId)
+    {
+        Debug.Log("TestFunction called from Web with args: " + arg.ToString());
+        UWBStateMachine.invokeCallback(callbackId, JObject.FromObject(new
+        {
+            status = 200,
+            message = "TestFunction executed successfully",
+            mydata = "Some data from Unity"
+        }));
     }
 }
 
