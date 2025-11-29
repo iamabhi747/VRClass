@@ -27,22 +27,65 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
             <p className="text-zinc-500 text-xs">No live sessions</p>
           </div>
         ) : (
-          liveLectures.map((lec) => (
-            <div key={lec.id} className="p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-              <div className="flex justify-between items-start mb-1">
-                <h4 className="font-bold text-white text-sm">{lec.title || 'Untitled Lecture'}</h4>
-                <span className="flex h-2 w-2 relative mt-1">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
-                </span>
+          liveLectures.map((lec) => {
+            const start = lec.startTime ? new Date(lec.startTime) : null;
+            const end = lec.endTime ? new Date(lec.endTime) : null;
+            const now = new Date();
+            const isToday = start && start.toDateString() === now.toDateString();
+            const timeStr = start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            const dateStr = start ? start.toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
+            const started = start && start.getTime() <= now.getTime();
+            const notEnded = !end || end.getTime() >= now.getTime();
+            const isLive = !!lec.isLive || !!lec.live || lec.status === 'live' || lec.started || (started && notEnded);
+
+            return (
+              <div key={lec.id} className={`p-3 rounded-xl bg-white/5 border ${theme.border} hover:bg-white/10 transition-colors flex items-center justify-between gap-3`}> 
+                <div className="flex items-start gap-3">
+                  {/* Live indicator - red dot for live meetings */}
+                  <div className="flex items-center">
+                    {isLive ? (
+                      <span className="flex h-3 w-3 relative mt-1 mr-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-50"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-zinc-300 font-medium">
+                      {isToday ? (
+                        <>{timeStr}</>
+                      ) : (
+                        <>{dateStr} • {timeStr}</>
+                      )}
+                    </div>
+                    <div className={`text-xs mt-1 ${theme.text} font-bold`}>{lec.title || lec.classname || 'Untitled Class'}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {isLive ? (
+                    <button
+                      onClick={() => {
+                        // Try to join: prefer a real join URL or navigate to classroom route
+                        if (lec.joinUrl) {
+                          window.open(lec.joinUrl, '_blank');
+                        } else {
+                          // Navigate to class room page, fallback
+                          const url = `/classroom${lec.classid ? `?classid=${lec.classid}` : ''}`;
+                          window.location.href = url;
+                        }
+                      }}
+                      className={`p-2 rounded-full ${theme.bg} text-white hover:brightness-110 transition-all shadow-sm transform hover:scale-105 hover:translate-x-1`} 
+                      title="Join class"
+                    >
+                      <ArrowRight size={14} />
+                    </button>
+                  ) : null}
+                </div>
               </div>
-              <p className="text-zinc-500 text-xs">
-                {lec.startTime ? new Date(lec.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                {lec.teacher ? ` • ${lec.teacher}` : ''}
-                {lec.classid ? ` • ${lec.classid}` : ''}
-              </p>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
@@ -58,18 +101,28 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
             <p className="text-zinc-500 text-xs">No past lectures found</p>
           </div>
         ) : (
-          pastLectures.map((lec) => (
-            <div key={lec.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-              <div>
-                <p className="text-zinc-300 text-sm font-medium">{lec.title || 'Untitled Lecture'}</p>
-                <p className="text-zinc-600 text-[10px]">
-                  {lec.endTime ? new Date(lec.endTime).toLocaleDateString() : ''}
-                  {lec.teacher ? ` • ${lec.teacher}` : ''}
-                </p>
+          pastLectures.map((lec) => {
+            const start = lec.startTime ? new Date(lec.startTime) : null;
+            const now = new Date();
+            const isToday = start && start.toDateString() === now.toDateString();
+            const timeStr = start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            const dateStr = start ? start.toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
+
+            return (
+              <div key={lec.id} className={`p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer border ${theme.border} bg-white/5`}> 
+                <div>
+                  <div className="text-sm text-zinc-300 font-medium">
+                    {isToday ? (
+                      <>{timeStr}</>
+                    ) : (
+                      <>{dateStr} • {timeStr}</>
+                    )}
+                  </div>
+                  <div className={`text-xs mt-1 ${theme.text} font-bold`}>{lec.title || lec.classname || 'Untitled Lecture'}</div>
+                </div>
               </div>
-              <ChevronRight size={14} className="text-zinc-600" />
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
