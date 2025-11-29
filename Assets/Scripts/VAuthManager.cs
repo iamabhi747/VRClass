@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using ReadyPlayerMe.AvatarCreator;
 using UnityEngine;
 
 class VAuthManager: MonoBehaviour
@@ -115,6 +116,21 @@ class VAuthManager: MonoBehaviour
         return Instance != null && Instance.isAuthenticated;
     }
 
+    public static NCNetworkManager.ClientData? GetClientData()
+    {
+        if (Instance == null) return null;
+
+        if (IsAuthenticated())
+        {
+            string jwtJson = JWT.JsonWebToken.Decode(Instance.auth.authToken, "", false);
+            return JsonUtility.FromJson<NCNetworkManager.ClientData>(jwtJson);
+        }
+        else
+        {
+            return null;
+        }
+    }
+
     public void Login(string username, string password, Action<string> OnSuccess, Action<string> OnError)
     {
         if (username == String.Empty || password == String.Empty)
@@ -167,5 +183,10 @@ class VAuthManager: MonoBehaviour
         var authFilePath = Path.Combine(Application.persistentDataPath, "auth.json");
         RemoveFile(authFilePath);
         Debug.Log($"{TAG}: User logged out and authentication data cleared.");
+    }
+
+    public NCNetworkManager.ConnectionPayload GetAuthData()
+    {
+        return auth;
     }
 }

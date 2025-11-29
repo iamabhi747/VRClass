@@ -5,7 +5,7 @@ public class VAuth : State
 {
 
     public override StateType StateType => StateType.VAuth;
-    public override StateType NextState => StateType.GenderSelection;
+    public override StateType NextState => StateType.VStudentDashboard;
 
     public override bool WebState => true;
     public override string WebURL => "http://localhost:5173/auth";
@@ -19,7 +19,22 @@ public class VAuth : State
             LoadingManager.DisableLoading();
             if (VAuthManager.IsAuthenticated())
             {
-                StateMachine.SetState(NextState);
+                var clientData = VAuthManager.GetClientData();
+                if (clientData == null)
+                {
+                    Debug.LogError("Failed to retrieve client data after authentication.");
+                    VAuthManager.Instance.Logout();
+                    return;
+                }
+
+                if (clientData?.mode == 2)
+                {
+                    StateMachine.SetState(StateType.VTeacherDashboard);
+                }
+                else
+                {
+                    StateMachine.SetState(NextState);
+                }
             }
         });
 

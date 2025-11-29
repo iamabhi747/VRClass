@@ -5,6 +5,8 @@ public enum StateType
 {
     None,
     VAuth,
+    VStudentDashboard,
+    VTeacherDashboard,
     LoginWithCodeFromEmail,
     AvatarSelection,
     GenderSelection,

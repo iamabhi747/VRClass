@@ -76,6 +76,7 @@ public class NCNetworkManager : MonoBehaviour
     private List<bool> studentSpawnPositionMarkers;
     private GameObject studentSpawnPositionMarkersObj;
     private string JWTSecret;
+    [SerializeField] private GameObject classroomPrefab;
 
     void Awake()
     {
@@ -104,9 +105,18 @@ public class NCNetworkManager : MonoBehaviour
     {
         if (!m_NetworkManager.IsClient && !m_NetworkManager.IsServer)
         {
+            // Rn generating dummy payload for connection approval
+            // later this will used to fetch actual user data including RPM object
+            var payload = new ConnectionPayload
+            {
+                clientId = System.Guid.NewGuid().ToString(),
+                authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InBob2VuaXh4IiwibmFtZSI6IkpvaG4gRG9lIiwic2VydmVyTmFtZSI6IlRlc3QgU2VydmVyIiwiYXZhdGFyVXJsIjoiaHR0cHM6Ly9tb2RlbHMucmVhZHlwbGF5ZXIubWUvNjhjZmJjYzE2MjFjMDRhYzY3YWY5MGNmLmdsYiIsIm1vZGUiOjEsInBvc2l0aW9uSW5kZXgiOi0xfQ.1gNkRXxoDcP3-36YykoXNkh7rjZSSoFdULX0gvlCPAs",
+                error = ""
+            };
+
             // For Debugging Purposes
             GUILayout.BeginArea(new Rect(10, 10, 300, 300));
-            if (GUILayout.Button("Client")) StartClient();
+            if (GUILayout.Button("Client")) StartClient(payload);
             if (GUILayout.Button("Server")) StartServer();
             GUILayout.EndArea();
             return;
@@ -122,18 +132,9 @@ public class NCNetworkManager : MonoBehaviour
         return null;
     }
 
-    private void StartClient()
+    public void StartClient(ConnectionPayload payload)
     {
         ConfigureNetworkSettings();
-
-        // Rn generating dummy payload for connection approval
-        // later this will used to fetch actual user data including RPM object
-        var payload = new ConnectionPayload
-        {
-            clientId = System.Guid.NewGuid().ToString(),
-            authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InBob2VuaXh4IiwibmFtZSI6IkpvaG4gRG9lIiwic2VydmVyTmFtZSI6IlRlc3QgU2VydmVyIiwiYXZhdGFyVXJsIjoiaHR0cHM6Ly9tb2RlbHMucmVhZHlwbGF5ZXIubWUvNjhjZmJjYzE2MjFjMDRhYzY3YWY5MGNmLmdsYiIsIm1vZGUiOjEsInBvc2l0aW9uSW5kZXgiOi0xfQ.1gNkRXxoDcP3-36YykoXNkh7rjZSSoFdULX0gvlCPAs",
-            error = "",
-        };
 
         var payloadBytes = System.Text.Encoding.UTF8.GetBytes(JsonUtility.ToJson(payload));
         m_NetworkManager.NetworkConfig.ConnectionData = payloadBytes;
@@ -141,6 +142,9 @@ public class NCNetworkManager : MonoBehaviour
         m_NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
 
         m_NetworkManager.OnClientStarted += OnClientStarted;
+
+        classroomPrefab.SetActive(true);
+        
         m_NetworkManager.StartClient();
     }
 
