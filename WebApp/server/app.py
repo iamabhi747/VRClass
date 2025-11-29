@@ -1,9 +1,14 @@
 from flask import Flask
 from routes.api import api
 from routes.db import init_db
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///vrclass.db'
+
+# Temporarily disable CORS restrictions (allow all origins)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 app.register_blueprint(api, url_prefix='/api')
 
 init_db(app)
