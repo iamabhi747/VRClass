@@ -27,22 +27,65 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
             <p className="text-zinc-500 text-xs">No live sessions</p>
           </div>
         ) : (
-          liveLectures.map((lec) => (
-            <div key={lec.id} className="p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-              <div className="flex justify-between items-start mb-1">
-                <h4 className="font-bold text-white text-sm">{lec.title || 'Untitled Lecture'}</h4>
-                <span className="flex h-2 w-2 relative mt-1">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
-                </span>
+          liveLectures.map((lec) => {
+            const start = lec.startTime ? new Date(lec.startTime) : null;
+            const end = lec.endTime ? new Date(lec.endTime) : null;
+            const now = new Date();
+            const isToday = start && start.toDateString() === now.toDateString();
+            const timeStr = start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            const dateStr = start ? start.toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
+            const started = start && start.getTime() <= now.getTime();
+            const notEnded = !end || end.getTime() >= now.getTime();
+            const isLive = !!lec.isLive || !!lec.live || lec.status === 'live' || lec.started || (started && notEnded);
+
+            return (
+              <div key={lec.id} className={`p-3 rounded-xl bg-white/5 border ${theme.border} hover:bg-white/10 transition-colors flex items-center justify-between gap-3`}> 
+                <div className="flex items-start gap-3">
+                  {/* Live indicator - red dot for live meetings */}
+                  <div className="flex items-center">
+                    {isLive ? (
+                      <span className="flex h-3 w-3 relative mt-1 mr-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-50"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-zinc-300 font-medium">
+                      {isToday ? (
+                        <>{timeStr}</>
+                      ) : (
+                        <>{dateStr} • {timeStr}</>
+                      )}
+                    </div>
+                    <div className={`text-xs mt-1 ${theme.text} font-bold`}>{lec.title || lec.classname || 'Untitled Class'}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {isLive ? (
+                    <button
+                      onClick={() => {
+                        // Try to join: prefer a real join URL or navigate to classroom route
+                        if (lec.joinUrl) {
+                          window.open(lec.joinUrl, '_blank');
+                        } else {
+                          // Navigate to class room page, fallback
+                          const url = `/classroom${lec.classid ? `?classid=${lec.classid}` : ''}`;
+                          window.location.href = url;
+                        }
+                      }}
+                      className={`p-2 rounded-full ${theme.bg} text-white hover:brightness-110 transition-all shadow-sm transform hover:scale-105 hover:translate-x-1`} 
+                      title="Join class"
+                    >
+                      <ArrowRight size={14} />
+                    </button>
+                  ) : null}
+                </div>
               </div>
-              <p className="text-zinc-500 text-xs">
-                {lec.startTime ? new Date(lec.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                {lec.teacher ? ` • ${lec.teacher}` : ''}
-                {lec.classid ? ` • ${lec.classid}` : ''}
-              </p>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
@@ -58,18 +101,28 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
             <p className="text-zinc-500 text-xs">No past lectures found</p>
           </div>
         ) : (
-          pastLectures.map((lec) => (
-            <div key={lec.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-              <div>
-                <p className="text-zinc-300 text-sm font-medium">{lec.title || 'Untitled Lecture'}</p>
-                <p className="text-zinc-600 text-[10px]">
-                  {lec.endTime ? new Date(lec.endTime).toLocaleDateString() : ''}
-                  {lec.teacher ? ` • ${lec.teacher}` : ''}
-                </p>
+          pastLectures.map((lec) => {
+            const start = lec.startTime ? new Date(lec.startTime) : null;
+            const now = new Date();
+            const isToday = start && start.toDateString() === now.toDateString();
+            const timeStr = start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            const dateStr = start ? start.toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
+
+            return (
+              <div key={lec.id} className={`p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer border ${theme.border} bg-white/5`}> 
+                <div>
+                  <div className="text-sm text-zinc-300 font-medium">
+                    {isToday ? (
+                      <>{timeStr}</>
+                    ) : (
+                      <>{dateStr} • {timeStr}</>
+                    )}
+                  </div>
+                  <div className={`text-xs mt-1 ${theme.text} font-bold`}>{lec.title || lec.classname || 'Untitled Lecture'}</div>
+                </div>
               </div>
-              <ChevronRight size={14} className="text-zinc-600" />
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
@@ -79,6 +132,18 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
 // 2. MIDDLE PANEL (Action Center - Dynamic Calendar)
 const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
   const [selectedDate, setSelectedDate] = useState(null);
+  // Teacher specific state
+  const [teacherClasses, setTeacherClasses] = useState(joinedClasses || []);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newClassName, setNewClassName] = useState('');
+  const [newClassCode, setNewClassCode] = useState('');
+  const [showSchedulePanel, setShowSchedulePanel] = useState(false);
+  const [scheduleClass, setScheduleClass] = useState(null);
+  const [scheduleDate, setScheduleDate] = useState(null);
+  const [scheduleTime, setScheduleTime] = useState('10:00');
+  useEffect(() => {
+    setTeacherClasses(joinedClasses || []);
+  }, [joinedClasses]);
   
   // Real-time Date Calculation
   const today = new Date();
@@ -118,62 +183,114 @@ const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
                   </button>
                </div>
 
-               <div className="relative group">
-                  <button className="relative w-full h-full bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-zinc-800 transition-colors">
-                     <Hash size={24} className="text-zinc-500 group-hover:text-white transition-colors" />
-                     <span className="text-zinc-400 group-hover:text-white font-bold text-sm transition-colors">Join via Code</span>
-                  </button>
-               </div>
+              <div className="relative group">
+                <button onClick={() => setShowCreateModal(true)} className="relative w-full h-full bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-zinc-800 transition-colors">
+                  <Plus size={24} className="text-zinc-500 group-hover:text-white transition-colors" />
+                  <span className="text-zinc-400 group-hover:text-white font-bold text-sm transition-colors">Create Class</span>
+                </button>
+              </div>
             </div>
 
-            {/* Dynamic Calendar */}
-            <div className="flex-1 bg-white/5 border border-white/5 rounded-2xl p-6 backdrop-blur-md flex flex-col min-h-[300px]">
+            {/* Classes List */}
+            <motion.div animate={{ y: showSchedulePanel ? -20 : 0, opacity: showSchedulePanel ? 0.85 : 1 }} transition={{ duration: 0.18 }} className="flex-1 bg-white/5 border border-white/5 rounded-2xl p-6 backdrop-blur-md flex flex-col min-h-[300px] relative">
                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-white font-bold">{currentMonth} {currentYear}</h3>
-                  <div className="flex gap-2">
-                     <button className="p-1 hover:bg-white/10 rounded"><ChevronRight className="rotate-180" size={16} /></button>
-                     <button className="p-1 hover:bg-white/10 rounded"><ChevronRight size={16} /></button>
-                  </div>
+                  <h3 className="text-white font-bold">Classes</h3>
+                  <button onClick={() => setShowCreateModal(true)} className="px-3 py-1 text-xs rounded-md border border-white/10 text-white/60 hover:bg-white/5">Create</button>
+               </div>
+               <div className="grid grid-cols-2 gap-3">
+                 {teacherClasses.length === 0 ? (
+                   <div className="col-span-2 p-4 rounded-2xl border border-white/5 bg-black/30 text-zinc-400">No classes yet — create one to schedule meetings</div>
+                 ) : (
+                   teacherClasses.map((c) => (
+                     <motion.div key={c.classid || c.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 350, damping: 26 }} className="p-4 rounded-2xl bg-zinc-900/50 border border-white/5 flex flex-col justify-between">
+                       <div>
+                         <p className="text-xs font-mono text-zinc-400 mb-1">{c.classid}</p>
+                         <h4 className="text-white font-bold">{c.classname}</h4>
+                       </div>
+                       <div className="mt-4 flex items-center gap-2 justify-between">
+                         <span className="text-xs text-zinc-400">{c.students ? `${c.students.length} students` : ''}</span>
+                         <button onClick={() => { setScheduleClass(c); setShowSchedulePanel(true); setScheduleDate(new Date().toISOString().slice(0,10)); setScheduleTime('10:00'); }} className={`px-3 py-1 rounded-md text-xs font-bold ${theme.bg} text-white`}>Schedule Meet</button>
+                       </div>
+                     </motion.div>
+                   ))
+                 )}
                </div>
                
-               <div className="grid grid-cols-7 gap-2 text-center text-xs text-zinc-500 font-bold mb-2">
-                  <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-               </div>
-               <div className="grid grid-cols-7 gap-2 flex-1 content-start overflow-y-auto pr-2 custom-scrollbar">
-                  {dates.map((day) => (
-                     <button 
-                       key={day}
-                       onClick={() => setSelectedDate(day)}
-                       className={`rounded-lg flex items-center justify-center transition-all duration-300 relative group aspect-square text-xs font-medium 
-                         ${selectedDate === day ? 'bg-teal-500 text-black shadow-[0_0_15px_rgba(20,184,166,0.6)]' : 'hover:bg-white/10 text-zinc-400 hover:text-white'}
-                         ${day === currentDay && selectedDate !== day ? 'border border-teal-500/50 text-teal-400' : ''}
-                       `}
-                     >
-                        {day}
-                        {/* Highlight TODAY */}
-                        {day === currentDay && <div className="absolute bottom-1 w-1 h-1 rounded-full bg-teal-400" />}
-                     </button>
-                  ))}
-               </div>
-
                <AnimatePresence>
-                 {selectedDate && (
-                    <motion.div 
-                      initial={{ height: 0, opacity: 0 }} 
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="mt-4 pt-4 border-t border-white/10"
-                    >
-                       <div className="flex gap-2 items-center">
-                          <input type="time" className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-teal-500 w-24" defaultValue="10:00" />
-                          <button className="flex-1 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg py-2 transition-colors truncate px-2">
-                             Schedule: {selectedDate} {currentMonth}
-                          </button>
+                 {showSchedulePanel && (
+                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-20 flex items-end justify-center p-6"> 
+                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSchedulePanel(false)} />
+                     <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', stiffness: 400, damping: 30 }} className="relative z-30 w-full max-w-2xl bg-black/80 border border-white/10 rounded-t-3xl p-6">
+                       <div className="flex items-center justify-between mb-3">
+                         <h4 className="text-lg font-bold text-white">Schedule Meet</h4>
+                         <button onClick={() => setShowSchedulePanel(false)} className="text-white/60 hover:text-white">✕</button>
                        </div>
-                    </motion.div>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                         <div>
+                           <label className="text-xs text-zinc-400">Class</label>
+                           <select value={scheduleClass?.classid || ''} onChange={(e) => setScheduleClass(teacherClasses.find(t => t.classid === e.target.value))} className="w-full bg-black/60 border border-white/10 rounded-md p-2 text-white mt-1">
+                             <option value="">Select class</option>
+                             {teacherClasses.map((tc) => (<option key={tc.classid} value={tc.classid}>{tc.classname}</option>))}
+                           </select>
+                         </div>
+                         <div>
+                           <label className="text-xs text-zinc-400">Date</label>
+                           <input type="date" value={scheduleDate || ''} onChange={(e) => setScheduleDate(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-md p-2 text-white mt-1" />
+                         </div>
+                         <div>
+                           <label className="text-xs text-zinc-400">Time</label>
+                           <input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-md p-2 text-white mt-1" />
+                         </div>
+                         <div className="flex items-end justify-end">
+                           <button onClick={() => {
+                             // Create scheduled lecture locally
+                             if (!scheduleClass || !scheduleDate || !scheduleTime) return;
+                             const [hours, minutes] = scheduleTime.split(':').map(Number);
+                             const [y,m,d] = scheduleDate.split('-').map(Number);
+                             const start = new Date(y, m-1, d, hours, minutes);
+                             const newLecture = { id: 'sched-'+Date.now(), title: scheduleClass.classname, classid: scheduleClass.classid, startTime: start.toISOString(), teacher: 'You' };
+                             window.postMessage({ type: 'scheduleLecture', lecture: newLecture }, window.location.origin);
+                             setShowSchedulePanel(false); setScheduleDate(null); setScheduleTime('10:00'); setScheduleClass(null);
+                           }} className={`px-4 py-2 rounded-md ${theme.bg} text-white`}>Schedule</button>
+                         </div>
+                       </div>
+                     </motion.div>
+                   </motion.div>
                  )}
                </AnimatePresence>
-            </div>
+            </motion.div>
+
+            {/* Create Class Modal */}
+            <AnimatePresence>
+              {showCreateModal && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30 flex items-center justify-center p-6">
+                  <div className="absolute inset-0 bg-black/60" onClick={() => setShowCreateModal(false)} />
+                  <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.98, opacity: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 28 }} className={`relative z-40 max-w-md w-full p-6 bg-black/80 border ${theme.border} rounded-2xl`}> 
+                    <h4 className="text-lg font-bold text-white mb-2">Create Class</h4>
+                    <p className="text-xs text-zinc-400 mb-4">Create a new class that you can schedule meetings for.</p>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-zinc-400">Class name</label>
+                        <input value={newClassName} onChange={(e) => setNewClassName(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-md p-2 text-white mt-1" placeholder="e.g. Physics 2024" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-zinc-400">Class code</label>
+                        <input value={newClassCode} onChange={(e) => setNewClassCode(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-md p-2 text-white mt-1" placeholder="e.g. PHY-2024-X" />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 mt-4">
+                        <button onClick={() => setShowCreateModal(false)} className="px-3 py-1 text-xs rounded-md border border-white/10 text-white/60 hover:bg-white/5">Cancel</button>
+                        <button onClick={() => {
+                          if (!newClassName.trim() || !newClassCode.trim()) return;
+                          const cls = { id: 'class-'+Date.now(), classname: newClassName.trim(), classid: newClassCode.trim(), students: [] };
+                          setTeacherClasses(prev => [cls, ...prev]);
+                          setNewClassName(''); setNewClassCode(''); setShowCreateModal(false);
+                        }} className={`px-4 py-2 rounded-md ${theme.bg} text-white text-sm font-bold`}>Create</button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         ) : (
           /* ================= STUDENT VIEW ================= */
@@ -199,8 +316,8 @@ const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
 
             <div>
                 <div className="flex items-center justify-between mb-4 px-1">
-                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Recent Destinations</h3>
-                    <button className="text-xs text-violet-400 hover:text-white transition-colors">View All</button>
+                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Classes</h3>
+                    
                 </div>
                 
             <div className="grid grid-cols-3 gap-4">
@@ -366,7 +483,7 @@ export default function TeachDashboard() {
   const isUnity = window.isUnity || false;
 
   const location = useLocation();
-  const role = 'teacher';
+  const role ='teacher';
 
   const theme = role === 'teacher' ? {
     bg: 'bg-teal-600',
@@ -436,6 +553,18 @@ export default function TeachDashboard() {
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authData?.authToken, authData?.clientId]);
+
+  // Listen for scheduled lectures posted from ActionCenter and append to live lectures
+  useEffect(() => {
+    const handler = (ev) => {
+      if (!ev?.data) return;
+      if (ev.data.type === 'scheduleLecture' && ev.data.lecture) {
+        setLiveLectures(prev => [ev.data.lecture, ...prev]);
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-black text-white p-4 lg:p-8 font-sans overflow-auto flex items-center justify-center">
