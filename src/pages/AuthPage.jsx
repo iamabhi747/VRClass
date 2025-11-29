@@ -190,7 +190,11 @@ export default function AuthPage() {
       setTimeout(() => {
           setIsWarping(false);
           // Navigate to Dashboard
-          navigate('/dashboard', { state: { role: role } });
+          if (role === 'student') {
+            navigate('/studdashboard');
+          } else if (role === 'teacher') {
+            navigate('/teachdashboard');
+          }
       }, 2000);
   };
 

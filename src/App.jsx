@@ -8,7 +8,8 @@ import DataStreamSplash from './components/splash/DataStreamSplash';
 // Import Pages
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
-import Dashboard from './pages/Dashboard';
+import StudDashboard from './pages/Stud_Dashboard';
+import TeachDashboard from './pages/Teach_Dashboard';
 
 export default function App() {
   // State to toggle splash screen
@@ -17,22 +18,21 @@ export default function App() {
   return (
     <>
       {/* 1. THE SPLASH SCREEN */}
-      <AnimatePresence mode="wait">
-        {showSplash && (
-        <DataStreamSplash onComplete={() => setShowSplash(false)} />
-        )}
-      </AnimatePresence>
+      
+      
 
       {/* 2. THE MAIN APP (Only visible after splash) */}
-      {!showSplash && (
+      
         <Router>
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/studdashboard" element={<StudDashboard />} />
+            <Route path="/teachdashboard" element={<TeachDashboard />} />
+            <Route path="/loading" element={<DataStreamSplash onComplete={() => setShowSplash(false)} />} />
           </Routes>
         </Router>
-      )}
+      
     </>
   );
 }
