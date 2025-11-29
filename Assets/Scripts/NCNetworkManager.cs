@@ -106,7 +106,6 @@ public class NCNetworkManager : MonoBehaviour
         {
             // For Debugging Purposes
             GUILayout.BeginArea(new Rect(10, 10, 300, 300));
-            if (GUILayout.Button("Host")) StartClient(true);
             if (GUILayout.Button("Client")) StartClient();
             if (GUILayout.Button("Server")) StartServer();
             GUILayout.EndArea();
@@ -123,7 +122,7 @@ public class NCNetworkManager : MonoBehaviour
         return null;
     }
 
-    private void StartClient(bool host = false)
+    private void StartClient()
     {
         ConfigureNetworkSettings();
 
@@ -141,15 +140,8 @@ public class NCNetworkManager : MonoBehaviour
 
         m_NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
 
-        if (!host) m_NetworkManager.OnClientStarted += OnClientStarted;
-        else
-        {
-            m_NetworkManager.ConnectionApprovalCallback += ServerApprovalCheck;
-            m_NetworkManager.OnClientConnectedCallback += OnClientConnected;
-        }
-
-        if (host) m_NetworkManager.StartHost();
-        else m_NetworkManager.StartClient();
+        m_NetworkManager.OnClientStarted += OnClientStarted;
+        m_NetworkManager.StartClient();
     }
 
     private void StartServer()
