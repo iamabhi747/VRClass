@@ -10,6 +10,8 @@ import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import StudDashboard from './pages/Stud_Dashboard';
 import TeachDashboard from './pages/Teach_Dashboard';
+import TeachEditP from './pages/TeachEditP';
+import StudEditP from './pages/StudEditP';
 
 export default function App() {
   // State to toggle splash screen
@@ -30,6 +32,8 @@ export default function App() {
             <Route path="/studdashboard" element={<StudDashboard />} />
             <Route path="/teachdashboard" element={<TeachDashboard />} />
             <Route path="/loading" element={<DataStreamSplash onComplete={() => setShowSplash(false)} />} />
+            <Route path="/TeachEditP" element={<TeachEditP />} />
+            <Route path="/StudEditP" element={<StudEditP />} />
           </Routes>
         </Router>
       

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Mail, Lock, User, ArrowRight, GraduationCap, School } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, ArrowRight, GraduationCap, School, Hash, Briefcase } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { run, resolveCallback } from '../bridge';
 
@@ -31,13 +31,13 @@ const WarpStarfield = ({ role, isWarping, isTyping }) => {
 
     // Initialize Stars once
     if (starsRef.current.length === 0) {
-        for (let i = 0; i < starCount; i++) {
-            starsRef.current.push({
-                x: Math.random() * width - width / 2,
-                y: Math.random() * height - height / 2,
-                z: Math.random() * 1000
-            });
-        }
+      for (let i = 0; i < starCount; i++) {
+        starsRef.current.push({
+          x: Math.random() * width - width / 2,
+          y: Math.random() * height - height / 2,
+          z: Math.random() * 1000
+        });
+      }
     }
 
     const handleResize = () => {
@@ -144,8 +144,13 @@ export default function AuthPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [rollNo, setRollNo] = useState('');
+  const [division, setDivision] = useState('');
+  const [department, setDepartment] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
+  const [designation, setDesignation] = useState('');
   const [isUnity, _] = useState(window.isUnity || false);
   const [error, setError] = useState(null); // { status, message }
   const typingTimeoutRef = useRef(null);
@@ -164,8 +169,28 @@ export default function AuthPage() {
       // TODO: Validate inputs
       // TODO: set loading true
 
+      // Local validation for signup: confirm password
+      if (!isLogin && password !== confirmPassword) {
+        setError({ status: 'VAL', message: 'Passwords do not match' });
+        return;
+      }
+
       if (isUnity) {
-        run('Authenticate', { action, role, email, password },
+        // Build payload for auth
+        const payload = { action, role, email, password, name: fullName };
+        if (!isLogin) {
+          if (role === 'student') {
+            payload.rollNo = rollNo;
+            payload.division = division;
+            payload.department = department;
+          } else {
+            payload.employeeId = employeeId;
+            payload.designation = designation;
+            payload.department = department;
+          }
+        }
+
+        run('Authenticate', payload,
           (response) => {
             // TODO: set loading false
             // Clear errors on success
@@ -324,7 +349,7 @@ export default function AuthPage() {
       {/* 2. GLASS LOGIN PANEL */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-        className={`relative z-10 w-full max-w-[400px] mx-4 transition-all duration-700 ${isWarping ? 'scale-95 opacity-0 blur-md' : 'opacity-100 scale-100'}`}
+        className={`relative z-10 w-full max-w-[460px] mx-4 transition-all duration-700 ${isWarping ? 'scale-95 opacity-0 blur-md' : 'opacity-100 scale-100'}`}
       >
         <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
           
@@ -370,7 +395,7 @@ export default function AuthPage() {
                 <InputField 
                   icon={Lock} 
                   type="password" 
-                  placeholder="Passcode" 
+                  placeholder="Password" 
                   name="password"
                   value={password}
                   onChange={setPassword}
@@ -391,21 +416,13 @@ export default function AuthPage() {
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                 className="space-y-4"
               >
-                 <div className="grid grid-cols-2 gap-3">
+                 <div className="space-y-3">
                   <InputField 
                     icon={User} 
                     type="text" 
-                    placeholder="First Name" 
-                    value={firstName}
-                    onChange={setFirstName}
-                    onTyping={handleTyping} 
-                  />
-                  <InputField 
-                    icon={User} 
-                    type="text" 
-                    placeholder="Last Name" 
-                    value={lastName}
-                    onChange={setLastName}
+                    placeholder="Full Name" 
+                    value={fullName}
+                    onChange={setFullName}
                     onTyping={handleTyping} 
                   />
                  </div>
@@ -417,15 +434,38 @@ export default function AuthPage() {
                   onChange={setEmail}
                   onTyping={handleTyping} 
                 />
+                {/* Role-specific Signup Fields */}
+                {role === 'student' ? (
+                  <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-3 gap-3">
+                    <InputField icon={Hash} type="text" placeholder="Roll No." value={rollNo} onChange={setRollNo} onTyping={handleTyping} />
+                    <InputField icon={User} type="text" placeholder="Division" value={division} onChange={setDivision} onTyping={handleTyping} />
+                    <InputField icon={GraduationCap} type="text" placeholder="Department" value={department} onChange={setDepartment} onTyping={handleTyping} />
+                  </motion.div>
+                ) : (
+                  <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-3 gap-3">
+                    <InputField icon={Hash} type="text" placeholder="Employee ID" value={employeeId} onChange={setEmployeeId} onTyping={handleTyping} />
+                    <InputField icon={Briefcase} type="text" placeholder="Designation" value={designation} onChange={setDesignation} onTyping={handleTyping} />
+                    <InputField icon={School} type="text" placeholder="Department" value={department} onChange={setDepartment} onTyping={handleTyping} />
+                  </motion.div>
+                )}
                 <InputField 
                   icon={Lock} 
                   type="password" 
-                  placeholder="Create Passcode" 
+                  placeholder="Create Password" 
                   name="password"
                   value={password}
                   onChange={setPassword}
                   onTyping={handleTyping} 
                   
+                />
+                <InputField 
+                  icon={Lock} 
+                  type="password" 
+                  placeholder="Confirm Password" 
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  onTyping={handleTyping} 
                 />
                  
                  <button 
@@ -439,7 +479,7 @@ export default function AuthPage() {
           </AnimatePresence>
 
           <div className="mt-6 pt-6 border-t border-white/5 text-center">
-            <button onClick={() => { setIsLogin(!isLogin); setError(null); }} className={`text-xs font-bold hover:underline ${current.text} transition-colors duration-300`}>
+            <button onClick={() => { setIsLogin(!isLogin); setError(null); setFullName(''); setConfirmPassword(''); setRollNo(''); setDivision(''); setDepartment(''); setEmployeeId(''); setDesignation(''); }} className={`text-xs font-bold hover:underline ${current.text} transition-colors duration-300`}>
                 {isLogin ? 'Need an account?' : 'Have an account?'}
              </button>
           </div>

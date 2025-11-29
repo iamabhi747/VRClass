@@ -401,7 +401,9 @@ const ProfileSection = ({ role, theme, profile }) => {
 
       {/* Edit Profile Button */}
       <div className="mt-4">
-         <button className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
+         <button 
+         onClick={() => navigate('/StudEditP')}
+         className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
             <Settings size={16} /> Edit Profile
          </button>
       </div>
