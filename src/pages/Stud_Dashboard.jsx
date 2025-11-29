@@ -199,8 +199,8 @@ const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
 
             <div>
                 <div className="flex items-center justify-between mb-4 px-1">
-                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Recent Destinations</h3>
-                    <button className="text-xs text-violet-400 hover:text-white transition-colors">View All</button>
+                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Classes</h3>
+                    
                 </div>
                 
             <div className="grid grid-cols-3 gap-4">

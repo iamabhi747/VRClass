@@ -147,6 +147,7 @@ export default function AuthPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isUnity, _] = useState(window.isUnity || false);
+  const [error, setError] = useState(null); // { status, message }
   const typingTimeoutRef = useRef(null);
   const navigate = useNavigate();
 
@@ -167,7 +168,8 @@ export default function AuthPage() {
         run('Authenticate', { action, role, email, password },
           (response) => {
             // TODO: set loading false
-
+            // Clear errors on success
+            setError(null);
             setIsWarping(true);
             setTimeout(() => {
               run('AuthNextState', {}, (response) => {}, (error) => {});
@@ -177,8 +179,9 @@ export default function AuthPage() {
             // error.status => error code
             // error.message => error message
 
-            // TODO: Handle error (e.g., show message)
-            console.error(`Authentication failed: (${error.status}) ${error.message}`);
+            // Show popup with server error
+            setError({ status: error?.status ?? 'ERR', message: error?.message ?? 'Authentication failed' });
+            console.error(`Authentication failed: (${error?.status}) ${error?.message}`);
           }
         );
         return;
@@ -186,10 +189,11 @@ export default function AuthPage() {
 
       // TODO: API Call for Web
       // TODO: set loading false
-      setIsWarping(true);
+        setIsWarping(true);
       setTimeout(() => {
           setIsWarping(false);
           // Navigate to Dashboard
+          setError(null);
           if (role === 'student') {
             navigate('/studdashboard');
           } else if (role === 'teacher') {
@@ -198,16 +202,117 @@ export default function AuthPage() {
       }, 2000);
   };
 
+  
+
   const theme = {
     student: { text: 'text-violet-400', bg: 'bg-violet-600', border: 'border-violet-500/30' },
     teacher: { text: 'text-teal-400', bg: 'bg-teal-600', border: 'border-teal-500/30' }
   };
   const current = theme[role];
 
+  // Auto-dismiss popup after a short duration when error is set
+  useEffect(() => {
+    if (!error) return;
+    const id = setTimeout(() => setError(null), 6000);
+    return () => clearTimeout(id);
+  }, [error]);
+
+  const ErrorPopup = ({ error, onClose, role }) => {
+    const theme = {
+      student: { text: 'text-violet-400', bg: 'bg-violet-600/80', border: 'border-violet-500/30', rgb: '124,58,237' },
+      teacher: { text: 'text-teal-400', bg: 'bg-teal-600/80', border: 'border-teal-500/30', rgb: '20,184,166' }
+    };
+    const current = theme[role];
+    const glow = role === 'student' ? '124,58,237' : '20,184,166';
+
+    const overlayVars = {
+      initial: { opacity: 0 },
+      animate: { opacity: 1, transition: { duration: 0.18 } },
+      exit: { opacity: 0, transition: { duration: 0.14 } }
+    };
+
+    const cardVars = {
+      initial: { opacity: 0, y: 20, scale: 0.96 },
+      animate: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 420, damping: 28 } },
+      exit: { opacity: 0, y: 16, scale: 0.98, transition: { duration: 0.18 } }
+    };
+
+    return (
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            key="auth-error"
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={{ initial: {}, animate: {}, exit: {} }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-6 pointer-events-auto"
+            aria-live="assertive"
+          >
+            <motion.div
+              className="absolute inset-0"
+              onClick={onClose}
+              variants={overlayVars}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              style={{ background: 'rgba(0,0,0,0.58)', backdropFilter: 'blur(6px)' }}
+            />
+
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={cardVars}
+              className={`relative z-10 max-w-2xl w-full mx-auto rounded-3xl p-6 ${current.border} border bg-black/70 backdrop-blur-xl shadow-2xl`}
+              style={{ boxShadow: `0 12px 40px rgba(${glow}, 0.10)` }}
+            >
+              <div className="flex items-start gap-4 md:gap-6">
+                  <motion.div
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 540, damping: 26 }}
+                    className={`flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-lg ${current.bg} ${current.text}`}
+                    style={{ boxShadow: `0 8px 30px rgba(${glow}, 0.14) inset` }}
+                  >
+                    <svg className="w-8 h-8 md:w-9 md:h-9" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M12 9v4" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M12 17h.01" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M10.29 3.86L2 20.5h20L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="white" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </motion.div>
+
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="text-lg md:text-xl text-white font-bold">Authentication Error</div>
+                      <div className="text-xs text-white/60 mt-1">{error?.status ? `Code: ${error.status}` : ''}</div>
+                    </div>
+                    <button
+                      onClick={onClose}
+                      className="text-white/50 hover:text-white p-1 rounded-full transition-colors"
+                      aria-label="Close error"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="text-sm md:text-base text-white/70 mt-3 break-words">
+                    {error?.message ?? 'An unknown error occurred.'}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center relative font-sans overflow-hidden bg-black">
       
       {/* 1. BACKGROUND ENGINE */}
+      <ErrorPopup error={error} onClose={() => setError(null)} role={role} />
       <WarpStarfield role={role} isWarping={isWarping} isTyping={isTyping} />
       
       {isUnity ? null : (
@@ -266,9 +371,11 @@ export default function AuthPage() {
                   icon={Lock} 
                   type="password" 
                   placeholder="Passcode" 
+                  name="password"
                   value={password}
                   onChange={setPassword}
                   onTyping={handleTyping} 
+                  
                 />
                  
                  <button 
@@ -314,9 +421,11 @@ export default function AuthPage() {
                   icon={Lock} 
                   type="password" 
                   placeholder="Create Passcode" 
+                  name="password"
                   value={password}
                   onChange={setPassword}
                   onTyping={handleTyping} 
+                  
                 />
                  
                  <button 
@@ -330,10 +439,21 @@ export default function AuthPage() {
           </AnimatePresence>
 
           <div className="mt-6 pt-6 border-t border-white/5 text-center">
-             <button onClick={() => setIsLogin(!isLogin)} className={`text-xs font-bold hover:underline ${current.text} transition-colors duration-300`}>
+            <button onClick={() => { setIsLogin(!isLogin); setError(null); }} className={`text-xs font-bold hover:underline ${current.text} transition-colors duration-300`}>
                 {isLogin ? 'Need an account?' : 'Have an account?'}
              </button>
           </div>
+          {/* DEV ONLY: Simulate server error for testing form errors */}
+          {import.meta?.env?.MODE === 'development' && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => setError({ status: 'DEV', message: 'Test popup: invalid credentials' })}
+                  className="mt-2 px-3 py-1 text-xs rounded-md bg-white/5 text-white/60 hover:bg-white/10"
+                >
+                  Simulate Error (Dev)
+                </button>
+              </div>
+          )}
         </div>
       </motion.div>
       
