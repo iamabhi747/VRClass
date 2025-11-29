@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timedelta
 
 db = SQLAlchemy()
 
@@ -70,3 +71,114 @@ def init_db(app):
     with app.app_context():
         db.create_all()
         db.session.commit()
+
+        # Seed initial testing data (only if empty)
+        if not db.session.execute(db.select(User)).first():
+            # Create teachers
+            teachers = []
+            for i in range(1, 2 + 1):
+                u = User(username=f"t{i}@abc.edu", password="testpass")
+                db.session.add(u)
+                db.session.flush()
+                cd = ClientData(
+                    userid=u.id,
+                    name=f"Teacher {i}",
+                    mode=2,
+                    avatarUrl=None,
+                    employeeid=f"T{i:03d}",
+                    designation="Lecturer",
+                    department="CS"
+                )
+                db.session.add(cd)
+                teachers.append(u)
+
+            # Create students
+            students = []
+            for i in range(1, 5 + 1):
+                u = User(username=f"s{i}@abc.edu", password="testpass")
+                db.session.add(u)
+                db.session.flush()
+                cd = ClientData(
+                    userid=u.id,
+                    name=f"Student {i}",
+                    mode=1,
+                    avatarUrl=None,
+                    rollno=f"S{i:03d}",
+                    division="A",
+                    department="CS"
+                )
+                db.session.add(cd)
+                students.append(u)
+
+            db.session.flush()
+
+            # Create classes
+            classes = []
+            c1 = Class(classid="C101", classname="Intro to Programming", teacherid=teachers[0].id)
+            c2 = Class(classid="C102", classname="Data Structures", teacherid=teachers[1].id)
+            db.session.add_all([c1, c2])
+            db.session.flush()
+            classes.extend([c1, c2])
+
+            # Enroll students
+            c1.users.extend(students[:3])  # s1, s2, s3
+            c2.users.extend(students[2:])  # s3, s4, s5
+
+            # Past lectures (ended)
+            now = datetime.utcnow()
+            past1_start = now - timedelta(days=7, hours=2)
+            past1_end = past1_start + timedelta(hours=2)
+            past2_start = now - timedelta(days=3, hours=1, minutes=30)
+            past2_end = past2_start + timedelta(hours=1, minutes=30)
+
+            db.session.add_all([
+                Lecture(
+                    class_id=c1.id,
+                    title="Variables and Control Flow",
+                    teacherid=teachers[0].id,
+                    start_time=past1_start,
+                    end_time=past1_end
+                ),
+                Lecture(
+                    class_id=c2.id,
+                    title="Arrays and Linked Lists",
+                    teacherid=teachers[1].id,
+                    start_time=past2_start,
+                    end_time=past2_end
+                ),
+            ])
+
+            # Live lecture (started, not ended)
+            live_start = now - timedelta(minutes=10)
+            db.session.add(
+                Lecture(
+                    class_id=c1.id,
+                    title="Functions Deep Dive",
+                    teacherid=teachers[0].id,
+                    start_time=live_start,
+                    end_time=None
+                )
+            )
+
+            # Scheduled upcoming lectures (not started yet)
+            upcoming1_start = now + timedelta(hours=2)
+            upcoming2_start = now + timedelta(days=1, hours=1)
+
+            db.session.add_all([
+                Lecture(
+                    class_id=c2.id,
+                    title="Stacks and Queues",
+                    teacherid=teachers[1].id,
+                    start_time=upcoming1_start,
+                    end_time=None
+                ),
+                Lecture(
+                    class_id=c1.id,
+                    title="Recursion Basics",
+                    teacherid=teachers[0].id,
+                    start_time=upcoming2_start,
+                    end_time=None
+                ),
+            ])
+
+            db.session.commit()

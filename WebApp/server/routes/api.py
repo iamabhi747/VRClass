@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from urllib.parse import unquote
 from .db import db, User, ClientData, Class, Lecture, class_user_association
 from datetime import datetime, timedelta, timezone
 import jwt
@@ -311,7 +312,8 @@ def class_leave():
 
 @api.route('/class/<classid>/users', methods=['GET'])
 def class_users(classid):
-    cls = Class.query.filter_by(classid=classid).first()
+    decoded_classid = unquote(classid) if classid else classid
+    cls = Class.query.filter_by(classid=decoded_classid).first()
     if not cls:
         return jsonify({"error": "Class not found"}), 200
     students = db.session.execute(
@@ -324,19 +326,31 @@ def class_users(classid):
             (class_user_association.c.class_id == cls.id) & (class_user_association.c.role == 2)
         )
     ).fetchall()
-    return jsonify({"classid": classid, "students": students, "teachers": teachers}), 200
+    return jsonify({"classid": decoded_classid, "students": students, "teachers": teachers}), 200
 
 
-@api.route('/user/<username>/classes', methods=['GET'])
-def user_classes(username):
-    user = User.query.filter_by(username=username).first()
+@api.route('/user/classes', methods=['POST'])
+def user_classes_by_token():
+    data = request.json
+    auth_token = data.get('authToken')
+    if not auth_token:
+        return jsonify({"error": "authToken required"}), 200
+
+    decoded = decode_token(auth_token)
+    if 'error' in decoded:
+        return jsonify(decoded), 200
+
+    clientId = decoded.get('clientId')
+    user = User.query.filter_by(username=clientId).first()
     if not user:
         return jsonify({"error": "User not found"}), 200
+
     classes = [{
         "classid": c.classid,
         "classname": c.classname
     } for c in user.classes]
-    return jsonify({"username": username, "classes": classes}), 200
+
+    return jsonify({"username": clientId, "classes": classes}), 200
 
 
 # -------- Lecture Endpoints --------
