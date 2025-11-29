@@ -44,6 +44,7 @@ public class UWBStateMachine : MonoBehaviour
         }
         webBrowserClient = clientManager.browserClient;
         webBrowserClient.OnLoadFinish += OnLoadFinish;
+        webBrowserClient.OnLoadStart += OnLoadStart;
 
         webBrowserClient.RegisterJsMethod<string, string, string>("UWBBridge", UWBBridge);
     }
@@ -127,6 +128,12 @@ public class UWBStateMachine : MonoBehaviour
         }
     }
 
+    private void OnLoadStart(string url)
+    {
+        ExecuteJs("console.log('Page loading started'); window.isUnity = true;");
+        Debug.Log("Web page started loading: " + url);
+    }
+
     public static void ExecuteJs(string script)
     {
         if (Instance == null || Instance.webBrowserClient == null)
@@ -154,6 +161,22 @@ public class UWBStateMachine : MonoBehaviour
         }
     }
 
+    public static void unregisterBridgeFunction(string functionName)
+    {
+        if (Instance == null)
+        {
+            Debug.LogWarning("UWBStateMachine instance is not available.");
+            return;
+        }
+        if (Instance.bridgeFunctions.ContainsKey(functionName))
+        {
+            Instance.bridgeFunctions.Remove(functionName);
+        }
+        else
+        {
+            Debug.LogWarning($"Bridge function {functionName} is not registered.");
+        }
+    }
     public static void invokeCallback(string callbackId, JObject argObject)
     {
         // Build a JS call without injecting raw, unescaped content

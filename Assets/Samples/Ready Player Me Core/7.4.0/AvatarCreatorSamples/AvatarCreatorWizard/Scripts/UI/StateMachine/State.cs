@@ -4,9 +4,7 @@
 public enum StateType
 {
     None,
-    VLogin,
-    VRegister,
-    VTest,
+    VAuth,
     LoginWithCodeFromEmail,
     AvatarSelection,
     GenderSelection,
