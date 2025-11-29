@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Mail, Lock, User, ArrowRight, GraduationCap, School } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { run, resolveCallback } from '../bridge';
+
+window.resolveCallback = resolveCallback;
 
 // --- PERSISTENT WARP ENGINE (Smooth Physics) ---
 const WarpStarfield = ({ role, isWarping, isTyping }) => {
@@ -116,7 +119,7 @@ const WarpStarfield = ({ role, isWarping, isTyping }) => {
 };
 
 // --- Input Component ---
-const InputField = ({ icon: Icon, type, placeholder, onTyping }) => (
+const InputField = ({ icon: Icon, type, placeholder, onTyping, value, onChange }) => (
   <div className="relative group">
     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/50 group-focus-within:text-white transition-colors">
       <Icon size={18} />
@@ -124,7 +127,11 @@ const InputField = ({ icon: Icon, type, placeholder, onTyping }) => (
     <input 
       type={type} 
       placeholder={placeholder}
-      onKeyDown={onTyping}
+      value={value}
+      onChange={(e) => {
+        if (onChange) onChange(e.target.value);
+        if (onTyping) onTyping();
+      }}
       className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-white/30 focus:bg-white/10 transition-all backdrop-blur-md"
     />
   </div>
@@ -135,6 +142,11 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [isWarping, setIsWarping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [isUnity, _] = useState(window.isUnity || false);
   const typingTimeoutRef = useRef(null);
   const navigate = useNavigate();
 
@@ -147,6 +159,33 @@ export default function AuthPage() {
   };
 
   const handleAction = () => {
+      const action = isLogin ? 'login' : 'signup';
+      // TODO: Validate inputs
+      // TODO: set loading true
+
+      if (isUnity) {
+        run('Authenticate', { action, role, email, password },
+          (response) => {
+            // TODO: set loading false
+
+            setIsWarping(true);
+            setTimeout(() => {
+              run('AuthNextState', {}, (response) => {}, (error) => {});
+            }, 1000);
+          },
+          (error) => {
+            // error.status => error code
+            // error.message => error message
+
+            // TODO: Handle error (e.g., show message)
+            console.error(`Authentication failed: (${error.status}) ${error.message}`);
+          }
+        );
+        return;
+      }
+
+      // TODO: API Call for Web
+      // TODO: set loading false
       setIsWarping(true);
       setTimeout(() => {
           setIsWarping(false);
@@ -167,9 +206,11 @@ export default function AuthPage() {
       {/* 1. BACKGROUND ENGINE */}
       <WarpStarfield role={role} isWarping={isWarping} isTyping={isTyping} />
       
+      {isUnity ? null : (
       <Link to="/" className="absolute top-8 left-8 text-white/50 hover:text-white flex items-center gap-2 transition-colors z-50 text-sm font-medium">
         <ArrowLeft size={16} /> Abort
       </Link>
+      )}
 
       {/* 2. GLASS LOGIN PANEL */}
       <motion.div 
@@ -209,8 +250,22 @@ export default function AuthPage() {
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
                 className="space-y-4"
               >
-                 <InputField icon={Mail} type="email" placeholder="ID / Email" onTyping={handleTyping} />
-                 <InputField icon={Lock} type="password" placeholder="Passcode" onTyping={handleTyping} />
+                <InputField 
+                  icon={Mail} 
+                  type="email" 
+                  placeholder="ID / Email" 
+                  value={email}
+                  onChange={setEmail}
+                  onTyping={handleTyping} 
+                />
+                <InputField 
+                  icon={Lock} 
+                  type="password" 
+                  placeholder="Passcode" 
+                  value={password}
+                  onChange={setPassword}
+                  onTyping={handleTyping} 
+                />
                  
                  <button 
                     onClick={handleAction}
@@ -226,11 +281,39 @@ export default function AuthPage() {
                 className="space-y-4"
               >
                  <div className="grid grid-cols-2 gap-3">
-                    <InputField icon={User} type="text" placeholder="First Name" onTyping={handleTyping} />
-                    <InputField icon={User} type="text" placeholder="Last Name" onTyping={handleTyping} />
+                  <InputField 
+                    icon={User} 
+                    type="text" 
+                    placeholder="First Name" 
+                    value={firstName}
+                    onChange={setFirstName}
+                    onTyping={handleTyping} 
+                  />
+                  <InputField 
+                    icon={User} 
+                    type="text" 
+                    placeholder="Last Name" 
+                    value={lastName}
+                    onChange={setLastName}
+                    onTyping={handleTyping} 
+                  />
                  </div>
-                 <InputField icon={Mail} type="email" placeholder="Email Address" onTyping={handleTyping} />
-                 <InputField icon={Lock} type="password" placeholder="Create Passcode" onTyping={handleTyping} />
+                <InputField 
+                  icon={Mail} 
+                  type="email" 
+                  placeholder="Email Address" 
+                  value={email}
+                  onChange={setEmail}
+                  onTyping={handleTyping} 
+                />
+                <InputField 
+                  icon={Lock} 
+                  type="password" 
+                  placeholder="Create Passcode" 
+                  value={password}
+                  onChange={setPassword}
+                  onTyping={handleTyping} 
+                />
                  
                  <button 
                     onClick={handleAction}
