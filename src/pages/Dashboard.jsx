@@ -361,7 +361,7 @@ const ProfileSection = ({ role, theme, profile }) => {
 export default function Dashboard() {
   const authData = window.authData || {
     "clientId":"s1@abc.com",
-    "authToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InMxQGFiYy5jb20iLCJuYW1lIjoiQWJoaW5hbmRhbiBCaHVzZSIsInNlcnZlck5hbWUiOiJWUkNsYXNzIFMxIiwiYXZhdGFyVXJsIjoiIiwibW9kZSI6MSwicG9zaXRpb25JbmRleCI6LTEsImV4cCI6MTc5NTk2NDY2MH0.rdffK2FBxLBR2gCnSd4oAkb51ebZv-HC8QLk16-_jMU"
+    "authToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InMxQGFiYy5lZHUiLCJuYW1lIjoiU3R1ZGVudCAxIiwic2VydmVyTmFtZSI6IlZSQ2xhc3MgUzEiLCJhdmF0YXJVcmwiOiIiLCJtb2RlIjoxLCJwb3NpdGlvbkluZGV4IjotMSwiZXhwIjoxNzk1OTY3NDU5fQ.muFHdTlHbRNJ3ny58N_Zjl0erOZEel_knfxWL42B1fg"
   }; // { authToken, clientId }
   const isUnity = window.isUnity || false;
 
@@ -420,7 +420,11 @@ export default function Dashboard() {
         setLiveLectures(Array.isArray(liveJson.lectures) ? liveJson.lectures : []);
 
         // Joined classes
-        const classesRes = await fetch(`${API_BASE}/user/${encodeURIComponent(authData.clientId)}/classes`);
+        const classesRes = await fetch(`${API_BASE}/user/classes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ authToken: authData.authToken })
+        });
         const classesJson = await classesRes.json();
         setJoinedClasses(Array.isArray(classesJson.classes) ? classesJson.classes : []);
       } catch (err) {
@@ -434,7 +438,7 @@ export default function Dashboard() {
   }, [authData?.authToken, authData?.clientId]);
 
   return (
-    <div className="min-h-screen w-full bg-black text-white p-4 lg:p-8 font-sans overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen w-full bg-black text-white p-4 lg:p-8 font-sans overflow-auto flex items-center justify-center">
       <div className="fixed inset-0 pointer-events-none">
          <div className={`absolute top-0 left-0 w-[500px] h-[500px] ${theme.glow} opacity-10 blur-[150px]`} />
          <div className={`absolute bottom-0 right-0 w-[500px] h-[500px] ${theme.glow} opacity-10 blur-[150px]`} />
