@@ -11,7 +11,7 @@ import {
 // --- COMPONENTS ---
 
 // 1. LEFT PANEL (Timeline)
-const HistoryPanel = ({ theme }) => (
+const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
   <div className="flex flex-col h-full gap-4">
     {/* Scheduled Section */}
     <div className={`flex-1 p-6 rounded-3xl border ${theme.border} bg-zinc-900/80 relative overflow-hidden`}>
@@ -22,21 +22,28 @@ const HistoryPanel = ({ theme }) => (
         <Clock size={18} className={theme.text} /> Scheduled
       </h3>
       <div className="space-y-3 relative z-10">
-        <div className="p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-          <div className="flex justify-between items-start mb-1">
-            <h4 className="font-bold text-white text-sm">3D Asset Pipeline</h4>
-            <span className="flex h-2 w-2 relative mt-1">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-            </span>
+        {liveLectures.length === 0 ? (
+          <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+            <p className="text-zinc-500 text-xs">No live sessions</p>
           </div>
-          <p className="text-zinc-500 text-xs">10:00 AM • Prof. Aris</p>
-        </div>
-        
-        <div className="p-3 rounded-xl bg-white/5 border border-white/5 opacity-60">
-          <h4 className="font-bold text-white text-sm">Unity Shader Graph</h4>
-          <p className="text-zinc-500 text-xs">02:00 PM • Lecture Hall B</p>
-        </div>
+        ) : (
+          liveLectures.map((lec) => (
+            <div key={lec.id} className="p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+              <div className="flex justify-between items-start mb-1">
+                <h4 className="font-bold text-white text-sm">{lec.title || 'Untitled Lecture'}</h4>
+                <span className="flex h-2 w-2 relative mt-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                </span>
+              </div>
+              <p className="text-zinc-500 text-xs">
+                {lec.startTime ? new Date(lec.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                {lec.teacher ? ` • ${lec.teacher}` : ''}
+                {lec.classid ? ` • ${lec.classid}` : ''}
+              </p>
+            </div>
+          ))
+        )}
       </div>
     </div>
 
@@ -46,27 +53,31 @@ const HistoryPanel = ({ theme }) => (
         <BookOpen size={18} className="text-zinc-500" /> History
       </h3>
       <div className="space-y-2">
-        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-          <div>
-            <p className="text-zinc-300 text-sm font-medium">Advanced Calculus</p>
-            <p className="text-zinc-600 text-[10px]">Yesterday • 1h 30m</p>
+        {pastLectures.length === 0 ? (
+          <div className="p-3 rounded-lg bg-white/5 border border-white/5">
+            <p className="text-zinc-500 text-xs">No past lectures found</p>
           </div>
-          <ChevronRight size={14} className="text-zinc-600" />
-        </div>
-        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
-          <div>
-            <p className="text-zinc-300 text-sm font-medium">Quantum Intro</p>
-            <p className="text-zinc-600 text-[10px]">Oct 24 • 45m</p>
-          </div>
-          <ChevronRight size={14} className="text-zinc-600" />
-        </div>
+        ) : (
+          pastLectures.map((lec) => (
+            <div key={lec.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+              <div>
+                <p className="text-zinc-300 text-sm font-medium">{lec.title || 'Untitled Lecture'}</p>
+                <p className="text-zinc-600 text-[10px]">
+                  {lec.endTime ? new Date(lec.endTime).toLocaleDateString() : ''}
+                  {lec.teacher ? ` • ${lec.teacher}` : ''}
+                </p>
+              </div>
+              <ChevronRight size={14} className="text-zinc-600" />
+            </div>
+          ))
+        )}
       </div>
     </div>
   </div>
 );
 
 // 2. MIDDLE PANEL (Action Center - Dynamic Calendar)
-const ActionCenter = ({ role, theme }) => {
+const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   
   // Real-time Date Calculation
@@ -192,46 +203,29 @@ const ActionCenter = ({ role, theme }) => {
                     <button className="text-xs text-violet-400 hover:text-white transition-colors">View All</button>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4">
-                    <motion.button 
-                        whileHover={{ y: -5 }}
-                        className="group relative h-32 rounded-2xl bg-gradient-to-br from-cyan-900/40 to-black border border-cyan-500/20 hover:border-cyan-400/60 p-4 text-left overflow-hidden transition-all"
-                    >
-                        <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all">
-                            <Atom className="text-cyan-400" size={40} />
-                        </div>
-                        <div className="absolute bottom-4 left-4">
-                            <p className="text-cyan-200 text-xs font-mono mb-1">PHY-101</p>
-                            <h4 className="text-white font-bold">Physics</h4>
-                        </div>
-                    </motion.button>
-
-                    <motion.button 
-                        whileHover={{ y: -5 }}
-                        className="group relative h-32 rounded-2xl bg-gradient-to-br from-violet-900/40 to-black border border-violet-500/20 hover:border-violet-400/60 p-4 text-left overflow-hidden transition-all"
-                    >
-                        <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all">
-                            <Code2 className="text-violet-400" size={40} />
-                        </div>
-                        <div className="absolute bottom-4 left-4">
-                            <p className="text-violet-200 text-xs font-mono mb-1">CS-LAB</p>
-                            <h4 className="text-white font-bold">Coding</h4>
-                        </div>
-                    </motion.button>
-
-                    <motion.button 
-                        whileHover={{ y: -5 }}
-                        className="group relative h-32 rounded-2xl bg-gradient-to-br from-orange-900/40 to-black border border-orange-500/20 hover:border-orange-400/60 p-4 text-left overflow-hidden transition-all"
-                    >
-                        <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all">
-                            <Calculator className="text-orange-400" size={40} />
-                        </div>
-                        <div className="absolute bottom-4 left-4">
-                            <p className="text-orange-200 text-xs font-mono mb-1">MTH-202</p>
-                            <h4 className="text-white font-bold">Maths</h4>
-                        </div>
-                    </motion.button>
+            <div className="grid grid-cols-3 gap-4">
+              {([...(Array.isArray(joinedClasses) ? joinedClasses.slice(0,3) : [])]).length > 0 ? (
+                ([...(Array.isArray(joinedClasses) ? joinedClasses.slice(0,3) : [])]).map((c, idx) => (
+                  <motion.button key={c.classid}
+                    whileHover={{ y: -5 }}
+                    className={`group relative h-32 rounded-2xl bg-gradient-to-br ${idx===0 ? 'from-cyan-900/40 border-cyan-500/20 hover:border-cyan-400/60' : idx===1 ? 'from-violet-900/40 border-violet-500/20 hover:border-violet-400/60' : 'from-orange-900/40 border-orange-500/20 hover:border-orange-400/60'} to-black border p-4 text-left overflow-hidden transition-all`}
+                  >
+                    <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all">
+                      {idx===0 ? <Atom className="text-cyan-400" size={40} /> : idx===1 ? <Code2 className="text-violet-400" size={40} /> : <Calculator className="text-orange-400" size={40} />}
+                    </div>
+                    <div className="absolute bottom-4 left-4">
+                      <p className={`text-xs font-mono mb-1 ${idx===0 ? 'text-cyan-200' : idx===1 ? 'text-violet-200' : 'text-orange-200'}`}>{c.classid}</p>
+                      <h4 className="text-white font-bold">{c.classname}</h4>
+                    </div>
+                  </motion.button>
+                ))
+              ) : (
+                <div className="col-span-3 p-4 rounded-2xl border border-white/10 bg-black/40 flex flex-col items-center justify-center h-32">
+                  <p className="text-zinc-400 text-xs font-medium">No classes joined yet</p>
+                  <p className="text-zinc-600 text-[10px] mt-1">Join a class with the code above.</p>
                 </div>
+              )}
+            </div>
             </div>
           </>
         )}
@@ -242,11 +236,22 @@ const ActionCenter = ({ role, theme }) => {
 };
 
 // 3. RIGHT PANEL (Detailed Profile - Professional Avatars)
-const ProfileSection = ({ role, theme }) => {
+const ProfileSection = ({ role, theme, profile }) => {
   const navigate = useNavigate();
 
   // Updated Data
-  const profileData = role === 'teacher' ? {
+  const profileData = profile ? {
+    name: profile.name || (role === 'teacher' ? 'Faculty Member' : 'Student'),
+    roleLabel: role === 'teacher' ? 'Senior Faculty' : 'Student',
+    field1_label: role === 'teacher' ? 'Employee ID' : 'Roll No',
+    field1_value: profile.rollno || '—',
+    field2_label: role === 'teacher' ? 'Designation' : 'Division',
+    field2_value: role === 'teacher' ? profile.designation || 'Professor' : profile.division || '—',
+    field3_label: 'Department',
+    field3_value: profile.department || '—',
+    email: profile.clientId ? profile.clientId : '—',
+    avatarUrl: profile.avatarUrl || ''
+  } : (role === 'teacher' ? {
     name: "Dr. Sarah Connors",
     roleLabel: "Senior Faculty",
     field1_label: "Employee ID",
@@ -254,8 +259,7 @@ const ProfileSection = ({ role, theme }) => {
     field2_label: "Designation",
     field2_value: "Professor",
     email: "sarah.c@uni.edu",
-    // Professional Woman Avatar
-    avatarUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200&h=200"
+    avatarUrl: ""
   } : {
     name: "Alex Carter",
     roleLabel: "Student • Year 3",
@@ -264,9 +268,8 @@ const ProfileSection = ({ role, theme }) => {
     field2_label: "Division",
     field2_value: "Batch A2",
     email: "alex.c@uni.edu",
-    // Smart Student Avatar
-    avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200&h=200"
-  };
+    avatarUrl: ""
+  });
 
   return (
     <div className={`h-full p-6 rounded-[32px] border ${theme.border} bg-zinc-900/80 flex flex-col relative`}>
@@ -327,9 +330,9 @@ const ProfileSection = ({ role, theme }) => {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded bg-white/5 text-zinc-400"><Users size={12} /></div>
-                    <span className="text-zinc-500 text-xs uppercase">Department</span>
+                    <span className="text-zinc-500 text-xs uppercase">{profileData.field3_label}</span>
                 </div>
-                <span className="text-white text-xs">Computer Science</span>
+                <span className="text-white text-xs">{profileData.field3_value}</span>
             </div>
             <div className="w-full h-px bg-white/5" />
             
@@ -356,6 +359,12 @@ const ProfileSection = ({ role, theme }) => {
 
 // --- MAIN DASHBOARD LAYOUT ---
 export default function Dashboard() {
+  const authData = window.authData || {
+    "clientId":"s1@abc.com",
+    "authToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InMxQGFiYy5jb20iLCJuYW1lIjoiQWJoaW5hbmRhbiBCaHVzZSIsInNlcnZlck5hbWUiOiJWUkNsYXNzIFMxIiwiYXZhdGFyVXJsIjoiIiwibW9kZSI6MSwicG9zaXRpb25JbmRleCI6LTEsImV4cCI6MTc5NTk2NDY2MH0.rdffK2FBxLBR2gCnSd4oAkb51ebZv-HC8QLk16-_jMU"
+  }; // { authToken, clientId }
+  const isUnity = window.isUnity || false;
+
   const location = useLocation();
   const role = location.state?.role || 'student';
 
@@ -371,6 +380,59 @@ export default function Dashboard() {
     glow: 'bg-violet-500',
   };
 
+  const API_BASE = 'http://localhost:8000/api';
+  const [profile, setProfile] = useState(null);
+  const [pastLectures, setPastLectures] = useState([]);
+  const [liveLectures, setLiveLectures] = useState([]);
+  const [joinedClasses, setJoinedClasses] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!authData?.authToken || !authData?.clientId) return;
+      setLoading(true);
+      try {
+        // Profile (GET to /generalprofile due to server expecting JSON body)
+        const profRes = await fetch(`${API_BASE}/generalprofile`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ authToken: authData.authToken })
+        });
+        const profJson = await profRes.json();
+        if (!profJson.error) setProfile(profJson);
+
+        // Past lectures
+        const pastRes = await fetch(`${API_BASE}/lectures/past`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ authToken: authData.authToken, limit: 10 })
+        });
+        const pastJson = await pastRes.json();
+        setPastLectures(Array.isArray(pastJson.lectures) ? pastJson.lectures : []);
+
+        // Live lectures
+        const liveRes = await fetch(`${API_BASE}/lectures/live`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ authToken: authData.authToken })
+        });
+        const liveJson = await liveRes.json();
+        setLiveLectures(Array.isArray(liveJson.lectures) ? liveJson.lectures : []);
+
+        // Joined classes
+        const classesRes = await fetch(`${API_BASE}/user/${encodeURIComponent(authData.clientId)}/classes`);
+        const classesJson = await classesRes.json();
+        setJoinedClasses(Array.isArray(classesJson.classes) ? classesJson.classes : []);
+      } catch (err) {
+        console.error('Dashboard data load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authData?.authToken, authData?.clientId]);
+
   return (
     <div className="min-h-screen w-full bg-black text-white p-4 lg:p-8 font-sans overflow-hidden flex items-center justify-center">
       <div className="fixed inset-0 pointer-events-none">
@@ -385,15 +447,16 @@ export default function Dashboard() {
         className="relative z-10 w-full max-w-[1400px] h-[85vh] grid grid-cols-1 lg:grid-cols-12 gap-6"
       >
         <div className="lg:col-span-3 h-full">
-          <HistoryPanel theme={theme} />
+          <HistoryPanel theme={theme} pastLectures={pastLectures} liveLectures={liveLectures} />
         </div>
         <div className="lg:col-span-6 h-full">
-          <ActionCenter role={role} theme={theme} />
+          <ActionCenter role={role} theme={theme} joinedClasses={joinedClasses} />
         </div>
         <div className="lg:col-span-3 h-full">
-          <ProfileSection role={role} theme={theme} />
+          <ProfileSection role={role} theme={theme} profile={profile} />
         </div>
       </motion.div>
+      
     </div>
   );
 }
