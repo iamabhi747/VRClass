@@ -27,6 +27,8 @@ public abstract class State : MonoBehaviour
     public virtual string WebURL => "";
 
     public abstract void ActivateState();
+    
+    public virtual void LateActivate() { }
     public abstract void DeactivateState();
 
     public void Initialize(StateMachine stateMachine, AvatarCreatorData avatarCreatorData, LoadingManager loadingManager)

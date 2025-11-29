@@ -123,7 +123,7 @@ public class UWBStateMachine : MonoBehaviour
         Debug.Log("Current State URL: " + currentState?.WebURL + ", Loaded URL: " + url);
         if (currentState != null && currentState.WebURL == url)
         {
-            currentState.ActivateState();
+            currentState.LateActivate();
             SetActive(true);
         }
     }
@@ -132,6 +132,11 @@ public class UWBStateMachine : MonoBehaviour
     {
         ExecuteJs("console.log('Page loading started'); window.isUnity = true;");
         Debug.Log("Web page started loading: " + url);
+
+        if (currentState != null && currentState.WebURL == url)
+        {
+            currentState.ActivateState();
+        }
     }
 
     public static void ExecuteJs(string script)
