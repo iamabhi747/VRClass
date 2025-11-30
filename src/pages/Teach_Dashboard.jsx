@@ -7,6 +7,9 @@ import {
   Hash, Mail, GraduationCap, Users, ArrowRight,
   Atom, Code2, Calculator
 } from 'lucide-react';
+import { run, resolveCallback } from '../bridge';
+
+window.resolveCallback = resolveCallback;
 
 // --- COMPONENTS ---
 
@@ -32,7 +35,7 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
             const end = lec.endTime ? new Date(lec.endTime) : null;
             const now = new Date();
             const isToday = start && start.toDateString() === now.toDateString();
-            const timeStr = start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            const timeStr = start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
             const dateStr = start ? start.toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
             const started = start && start.getTime() <= now.getTime();
             const notEnded = !end || end.getTime() >= now.getTime();
@@ -67,13 +70,9 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
                   {isLive ? (
                     <button
                       onClick={() => {
-                        // Try to join: prefer a real join URL or navigate to classroom route
-                        if (lec.joinUrl) {
-                          window.open(lec.joinUrl, '_blank');
-                        } else {
-                          // Navigate to class room page, fallback
-                          const url = `/classroom${lec.classid ? `?classid=${lec.classid}` : ''}`;
-                          window.location.href = url;
+                        if (window.isUnity) {
+                          run('StartLecture', { lectureId: lec.id }, () => {}, () => {});
+                          return;
                         }
                       }}
                       className={`p-2 rounded-full ${theme.bg} text-white hover:brightness-110 transition-all shadow-sm transform hover:scale-105 hover:translate-x-1`} 
@@ -105,7 +104,7 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
             const start = lec.startTime ? new Date(lec.startTime) : null;
             const now = new Date();
             const isToday = start && start.toDateString() === now.toDateString();
-            const timeStr = start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            const timeStr = start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '--:--';
             const dateStr = start ? start.toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
 
             return (
@@ -130,7 +129,7 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
 );
 
 // 2. MIDDLE PANEL (Action Center - Dynamic Calendar)
-const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
+const ActionCenter = ({ role, theme, joinedClasses = [], authToken, API_BASE, onClassCreated, onLectureScheduled }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   // Teacher specific state
   const [teacherClasses, setTeacherClasses] = useState(joinedClasses || []);
@@ -141,6 +140,15 @@ const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
   const [scheduleClass, setScheduleClass] = useState(null);
   const [scheduleDate, setScheduleDate] = useState(null);
   const [scheduleTime, setScheduleTime] = useState('10:00');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [scheduleCreating, setScheduleCreating] = useState(false);
+  const [scheduleError, setScheduleError] = useState('');
+  // Instant meeting modal state
+  const [showInstantModal, setShowInstantModal] = useState(false);
+  const [instantClass, setInstantClass] = useState(null);
+  const [instantCreating, setInstantCreating] = useState(false);
+  const [instantError, setInstantError] = useState('');
   useEffect(() => {
     setTeacherClasses(joinedClasses || []);
   }, [joinedClasses]);
@@ -177,7 +185,15 @@ const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
             <div className="grid grid-cols-2 gap-4">
                <div className="relative group">
                   <div className={`absolute -inset-0.5 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl opacity-20 group-hover:opacity-100 blur transition duration-500`} />
-                  <button className="relative w-full h-full bg-black border border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-zinc-900 transition-colors">
+                  <button
+                    onClick={() => {
+                      if (teacherClasses.length === 0) return;
+                      setInstantClass(teacherClasses[0]);
+                      setInstantError('');
+                      setShowInstantModal(true);
+                    }}
+                    className="relative w-full h-full bg-black border border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-zinc-900 transition-colors"
+                  >
                      <Zap size={24} className="text-teal-400" />
                      <span className="text-white font-bold text-sm">Instant Meeting</span>
                   </button>
@@ -242,17 +258,42 @@ const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
                            <input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-md p-2 text-white mt-1" />
                          </div>
                          <div className="flex items-end justify-end">
-                           <button onClick={() => {
-                             // Create scheduled lecture locally
-                             if (!scheduleClass || !scheduleDate || !scheduleTime) return;
-                             const [hours, minutes] = scheduleTime.split(':').map(Number);
-                             const [y,m,d] = scheduleDate.split('-').map(Number);
-                             const start = new Date(y, m-1, d, hours, minutes);
-                             const newLecture = { id: 'sched-'+Date.now(), title: scheduleClass.classname, classid: scheduleClass.classid, startTime: start.toISOString(), teacher: 'You' };
-                             window.postMessage({ type: 'scheduleLecture', lecture: newLecture }, window.location.origin);
-                             setShowSchedulePanel(false); setScheduleDate(null); setScheduleTime('10:00'); setScheduleClass(null);
-                           }} className={`px-4 py-2 rounded-md ${theme.bg} text-white`}>Schedule</button>
+                           <button
+                             disabled={scheduleCreating || !scheduleClass || !scheduleDate || !scheduleTime}
+                             onClick={async () => {
+                               if (!scheduleClass || !scheduleDate || !scheduleTime || scheduleCreating) return;
+                               setScheduleCreating(true);
+                               setScheduleError('');
+                               try {
+                                 const [hours, minutes] = scheduleTime.split(':').map(Number);
+                                 const [y,m,d] = scheduleDate.split('-').map(Number);
+                                 // Build naive local ISO string (no timezone) to preserve chosen hour
+                                 const iso = `${y.toString().padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:00`;
+                                 const res = await fetch(`${API_BASE}/lecture/schedule`, {
+                                   method: 'POST',
+                                   headers: { 'Content-Type': 'application/json' },
+                                   body: JSON.stringify({ authToken, classid: scheduleClass.classid, title: scheduleClass.classname, startTime: iso })
+                                 });
+                                 const json = await res.json();
+                                 if (json.success && json.lecture) {
+                                   if (onLectureScheduled) await onLectureScheduled();
+                                   setShowSchedulePanel(false);
+                                   setScheduleDate(null);
+                                   setScheduleTime('10:00');
+                                   setScheduleClass(null);
+                                 } else {
+                                   setScheduleError(json.error || 'Failed to schedule lecture');
+                                 }
+                               } catch (e) {
+                                 setScheduleError('Network error scheduling lecture');
+                               } finally {
+                                 setScheduleCreating(false);
+                               }
+                             }}
+                             className={`px-4 py-2 rounded-md ${theme.bg} text-white disabled:opacity-50`}
+                           >{scheduleCreating ? 'Scheduling...' : 'Schedule'}</button>
                          </div>
+                         {scheduleError && <p className="col-span-2 text-xs text-red-400 mt-2">{scheduleError}</p>}
                        </div>
                      </motion.div>
                    </motion.div>
@@ -279,14 +320,112 @@ const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
                       </div>
                       <div className="flex items-center justify-end gap-2 mt-4">
                         <button onClick={() => setShowCreateModal(false)} className="px-3 py-1 text-xs rounded-md border border-white/10 text-white/60 hover:bg-white/5">Cancel</button>
-                        <button onClick={() => {
-                          if (!newClassName.trim() || !newClassCode.trim()) return;
-                          const cls = { id: 'class-'+Date.now(), classname: newClassName.trim(), classid: newClassCode.trim(), students: [] };
-                          setTeacherClasses(prev => [cls, ...prev]);
-                          setNewClassName(''); setNewClassCode(''); setShowCreateModal(false);
-                        }} className={`px-4 py-2 rounded-md ${theme.bg} text-white text-sm font-bold`}>Create</button>
+                        <button
+                          disabled={creating}
+                          onClick={async () => {
+                            if (!newClassName.trim() || !newClassCode.trim() || creating) return;
+                            setCreating(true);
+                            setCreateError('');
+                            try {
+                              const res = await fetch(`${API_BASE}/class/create`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ authToken: authToken, classname: newClassName.trim(), classid: newClassCode.trim() })
+                              });
+                              const json = await res.json();
+                              if (json.success && !json.error) {
+                                // Refresh classes from parent
+                                if (onClassCreated) await onClassCreated();
+                                setShowCreateModal(false);
+                                setNewClassName('');
+                                setNewClassCode('');
+                              } else {
+                                setCreateError(json.error || 'Failed to create class');
+                              }
+                            } catch (e) {
+                              setCreateError('Network error creating class');
+                            } finally {
+                              setCreating(false);
+                            }
+                          }}
+                          className={`px-4 py-2 rounded-md ${theme.bg} text-white text-sm font-bold disabled:opacity-50`}
+                        >{creating ? 'Creating...' : 'Create'}</button>
                       </div>
+                      {createError && <p className="text-xs text-red-400 mt-2">{createError}</p>}
                     </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Instant Meeting Modal */}
+            <AnimatePresence>
+              {showInstantModal && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30 flex items-center justify-center p-6">
+                  <div className="absolute inset-0 bg-black/70" onClick={() => { if(!instantCreating) setShowInstantModal(false); }} />
+                  <motion.div initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.96, opacity: 0 }} transition={{ type: 'spring', stiffness: 420, damping: 30 }} className={`relative z-40 max-w-sm w-full p-5 bg-black/85 border ${theme.border} rounded-2xl`}> 
+                    <h4 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Zap size={18} className="text-teal-400" /> Start Instant Meeting</h4>
+                    {teacherClasses.length === 0 ? (
+                      <p className="text-xs text-zinc-500">You have no classes yet. Create a class first.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold">Class</label>
+                          <select
+                            disabled={instantCreating}
+                            value={instantClass?.classid || ''}
+                            onChange={(e) => setInstantClass(teacherClasses.find(t => t.classid === e.target.value))}
+                            className="mt-1 w-full bg-black/60 border border-white/10 rounded-md p-2 text-white text-sm"
+                          >
+                            {teacherClasses.map(tc => <option key={tc.classid} value={tc.classid}>{tc.classname}</option>)}
+                          </select>
+                        </div>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            disabled={instantCreating}
+                            onClick={() => { if(!instantCreating) setShowInstantModal(false); }}
+                            className="px-3 py-1 text-xs rounded-md border border-white/10 text-white/60 hover:bg-white/5"
+                          >Cancel</button>
+                          <button
+                            disabled={instantCreating || !instantClass}
+                            onClick={async () => {
+                              if (!instantClass || instantCreating) return;
+                              setInstantCreating(true);
+                              setInstantError('');
+                              try {
+                                const now = new Date();
+                                const y = now.getFullYear();
+                                const m = now.getMonth() + 1;
+                                const d = now.getDate();
+                                const hh = now.getHours();
+                                const mm = now.getMinutes();
+                                const iso = `${y.toString().padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00`;
+                                const res = await fetch(`${API_BASE}/lecture/schedule`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ authToken, classid: instantClass.classid, title: instantClass.classname, startTime: iso })
+                                });
+                                const json = await res.json();
+                                if (json.success && json.lecture) {
+                                  if (onLectureScheduled) await onLectureScheduled();
+                                  setShowInstantModal(false);
+                                  setInstantClass(null);
+                                } else {
+                                  setInstantError(json.error || 'Failed to start meeting');
+                                }
+                              } catch (e) {
+                                setInstantError('Network error starting meeting');
+                              } finally {
+                                setInstantCreating(false);
+                              }
+                            }}
+                            className={`px-4 py-2 rounded-md ${theme.bg} text-white text-xs font-bold disabled:opacity-50`}
+                          >{instantCreating ? 'Starting...' : 'Start Now'}</button>
+                        </div>
+                        {instantError && <p className="text-xs text-red-400">{instantError}</p>}
+                        <p className="text-[10px] text-zinc-500 mt-1">Starts immediately with current local time.</p>
+                      </div>
+                    )}
                   </motion.div>
                 </motion.div>
               )}
@@ -397,7 +536,13 @@ const ProfileSection = ({ role, theme, profile }) => {
             {role === 'teacher' ? 'Faculty Portal' : 'Student Portal'}
          </span>
          <button 
-            onClick={() => navigate('/')} 
+            onClick={() => {
+              if (window.isUnity) {
+                run('Logout', {}, () => {}, () => {});
+                return;
+              }
+              navigate('/auth');
+            }} 
             className="p-2 rounded-full bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
             title="Logout"
          >
@@ -506,6 +651,38 @@ export default function TeachDashboard() {
   const [joinedClasses, setJoinedClasses] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Refresh classes list from API (used after creating a class)
+  const refreshClasses = async () => {
+    if (!authData?.authToken) return;
+    try {
+      const classesRes = await fetch(`${API_BASE}/user/classes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ authToken: authData.authToken })
+      });
+      const classesJson = await classesRes.json();
+      setJoinedClasses(Array.isArray(classesJson.classes) ? classesJson.classes : []);
+    } catch (e) {
+      console.error('Refresh classes failed:', e);
+    }
+  };
+
+  // Refresh live lectures list (used after scheduling)
+  const refreshLiveLectures = async () => {
+    if (!authData?.authToken) return;
+    try {
+      const liveRes = await fetch(`${API_BASE}/lectures/live`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ authToken: authData.authToken })
+      });
+      const liveJson = await liveRes.json();
+      setLiveLectures(Array.isArray(liveJson.lectures) ? liveJson.lectures : []);
+    } catch (e) {
+      console.error('Refresh live lectures failed:', e);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (!authData?.authToken || !authData?.clientId) return;
@@ -585,7 +762,15 @@ export default function TeachDashboard() {
           <HistoryPanel theme={theme} pastLectures={pastLectures} liveLectures={liveLectures} />
         </div>
         <div className="lg:col-span-6 h-full">
-          <ActionCenter role={role} theme={theme} joinedClasses={joinedClasses} />
+          <ActionCenter
+            role={role}
+            theme={theme}
+            joinedClasses={joinedClasses}
+            authToken={authData.authToken}
+            API_BASE={API_BASE}
+            onClassCreated={refreshClasses}
+            onLectureScheduled={refreshLiveLectures}
+          />
         </div>
         <div className="lg:col-span-3 h-full">
           <ProfileSection role={role} theme={theme} profile={profile} />

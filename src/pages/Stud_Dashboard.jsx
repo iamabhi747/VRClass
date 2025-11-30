@@ -7,6 +7,9 @@ import {
   Hash, Mail, GraduationCap, Users, ArrowRight,
   Atom, Code2, Calculator
 } from 'lucide-react';
+import { run, resolveCallback } from '../bridge';
+
+window.resolveCallback = resolveCallback;
 
 // --- COMPONENTS ---
 
@@ -67,13 +70,9 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
                   {isLive ? (
                     <button
                       onClick={() => {
-                        // Try to join: prefer a real join URL or navigate to classroom route
-                        if (lec.joinUrl) {
-                          window.open(lec.joinUrl, '_blank');
-                        } else {
-                          // Navigate to class room page, fallback
-                          const url = `/classroom${lec.classid ? `?classid=${lec.classid}` : ''}`;
-                          window.location.href = url;
+                        if (window.isUnity) {
+                          run('StartLecture', { lectureId: lec.id }, () => {}, () => {});
+                          return;
                         }
                       }}
                       className={`p-2 rounded-full ${theme.bg} text-white hover:brightness-110 transition-all shadow-sm transform hover:scale-105 hover:translate-x-1`} 
@@ -333,7 +332,13 @@ const ProfileSection = ({ role, theme, profile }) => {
             {role === 'teacher' ? 'Faculty Portal' : 'Student Portal'}
          </span>
          <button 
-            onClick={() => navigate('/')} 
+            onClick={() => {
+              if (window.isUnity) {
+                run('Logout', {}, () => {}, () => {});
+                return;
+              }
+              navigate('/auth');
+            }} 
             className="p-2 rounded-full bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
             title="Logout"
          >
