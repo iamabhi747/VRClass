@@ -120,6 +120,24 @@ def profile():
             name = data.get('name', clientdata.name)
             avatarUrl = data.get('avatarUrl', clientdata.avatarUrl)
 
+            if clientdata.mode == 1:
+                rollno = data.get('rollno', clientdata.rollno)
+                division = data.get('division', clientdata.division)
+                department = data.get('department', clientdata.department)
+
+                clientdata.rollno = rollno
+                clientdata.division = division
+                clientdata.department = department
+            
+            elif clientdata.mode == 2:
+                designation = data.get('designation', clientdata.designation)
+                employeeid = data.get('employeeid', clientdata.employeeid)
+                department = data.get('department', clientdata.department)
+
+                clientdata.designation = designation
+                clientdata.employeeid = employeeid
+                clientdata.department = department
+
             clientdata.name = name
             clientdata.avatarUrl = avatarUrl
             db.session.commit()
