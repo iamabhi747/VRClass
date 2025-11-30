@@ -610,11 +610,14 @@ const ProfileSection = ({ role, theme, profile }) => {
 
       {/* Edit Profile Button */}
       <div className="mt-4">
-         <button
-         onClick={() => navigate('/TeachEditP')}
-         className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
-            <Settings size={16} /> Edit Profile
-         </button>
+        <button
+        onClick={() => navigate('/TeachEditP', { state: { authData: window.authData || {
+          "clientId":"t1@abc.edu",
+          "authToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InQxQGFiYy5lZHUiLCJuYW1lIjoiVGVhY2hlciAxIiwic2VydmVyTmFtZSI6IlZSQ2xhc3MgUzEiLCJhdmF0YXJVcmwiOiIiLCJtb2RlIjoyLCJwb3NpdGlvbkluZGV4IjotMSwiZXhwIjozMzMwMDQzODQ0N30.z77u-3mkRCrzvm-aL05UtB68MWiSaM_DdnmboFoSIXw"
+        } } })}
+        className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
+          <Settings size={16} /> Edit Profile
+        </button>
       </div>
 
     </div>

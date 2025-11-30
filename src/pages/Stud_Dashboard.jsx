@@ -129,8 +129,13 @@ const HistoryPanel = ({ theme, pastLectures = [], liveLectures = [] }) => (
 );
 
 // 2. MIDDLE PANEL (Action Center - Dynamic Calendar)
-const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
+const ActionCenter = ({ role, theme, joinedClasses = [], authToken, API_BASE, onJoined }) => {
   const [selectedDate, setSelectedDate] = useState(null);
+  // Join via Code state (student)
+  const [joinCode, setJoinCode] = useState("");
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState("");
+  const [joinSuccess, setJoinSuccess] = useState("");
   
   // Real-time Date Calculation
   const today = new Date();
@@ -240,13 +245,48 @@ const ActionCenter = ({ role, theme, joinedClasses = [] }) => {
                      <input 
                        type="text" 
                        placeholder="ex: PHY-2024-X" 
+                       value={joinCode}
+                       onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setJoinError(""); setJoinSuccess(""); }}
                        className="w-full bg-black/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white font-mono text-sm focus:outline-none focus:border-violet-500 transition-colors"
                      />
                   </div>
-                  <button className={`px-6 rounded-xl font-bold text-sm text-white ${theme.bg} hover:brightness-110 transition-all flex items-center gap-2`}>
-                     Join <ArrowRight size={16} />
+                  <button
+                    disabled={joining}
+                    onClick={async () => {
+                      setJoinError("");
+                      setJoinSuccess("");
+                      if (!joinCode.trim()) { setJoinError("Enter a valid class code"); return; }
+                      if (!authToken) { setJoinError("Missing authentication"); return; }
+                      setJoining(true);
+                      try {
+                        const res = await fetch(`${API_BASE}/class/join`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ authToken, classid: joinCode.trim(), role: 1 })
+                        });
+                        const data = await res.json();
+                        if (data.error) {
+                          setJoinError(data.error);
+                        } else if (data.success) {
+                          setJoinSuccess('Joined successfully');
+                          setJoinCode("");
+                          onJoined && onJoined();
+                        } else {
+                          setJoinError('Unable to join class');
+                        }
+                      } catch (e) {
+                        setJoinError('Network error while joining');
+                      } finally {
+                        setJoining(false);
+                      }
+                    }}
+                    className={`px-6 rounded-xl font-bold text-sm text-white ${theme.bg} hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed`}
+                  >
+                     {joining ? 'Joining…' : 'Join'} <ArrowRight size={16} />
                   </button>
                </div>
+               {joinError && <p className="text-red-400 text-xs mt-2">{joinError}</p>}
+               {joinSuccess && <p className="text-emerald-400 text-xs mt-2">{joinSuccess}</p>}
             </div>
 
             <div>
@@ -406,11 +446,14 @@ const ProfileSection = ({ role, theme, profile }) => {
 
       {/* Edit Profile Button */}
       <div className="mt-4">
-         <button 
-         onClick={() => navigate('/StudEditP')}
-         className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
-            <Settings size={16} /> Edit Profile
-         </button>
+        <button 
+        onClick={() => navigate('/StudEditP', { state: { authData: window.authData || {
+          "clientId":"s1@abc.edu",
+          "authToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InMxQGFiYy5lZHUiLCJuYW1lIjoiU3R1ZGVudCAxIiwic2VydmVyTmFtZSI6IlZSQ2xhc3MgUzEiLCJhdmF0YXJVcmwiOiIiLCJtb2RlIjoxLCJwb3NpdGlvbkluZGV4IjotMSwiZXhwIjoxNzk1OTc0Mjc0fQ.wY1OsWSRXjN6mwhCJdn5rcXjNSmYeWpmO0iTh0ZPk8o"
+        } } })}
+        className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
+          <Settings size={16} /> Edit Profile
+        </button>
       </div>
 
     </div>
@@ -426,7 +469,7 @@ export default function StudDashboard() {
   const isUnity = window.isUnity || false;
 
   const location = useLocation();
-  const role = location.state?.role || 'student';
+  const role = 'student';
 
   const theme = role === 'teacher' ? {
     bg: 'bg-teal-600',
@@ -514,7 +557,26 @@ export default function StudDashboard() {
           <HistoryPanel theme={theme} pastLectures={pastLectures} liveLectures={liveLectures} />
         </div>
         <div className="lg:col-span-6 h-full">
-          <ActionCenter role={role} theme={theme} joinedClasses={joinedClasses} />
+          <ActionCenter 
+            role={role}
+            theme={theme}
+            joinedClasses={joinedClasses}
+            authToken={authData?.authToken}
+            API_BASE={API_BASE}
+            onJoined={async () => {
+              try {
+                const classesRes = await fetch(`${API_BASE}/user/classes`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ authToken: authData?.authToken })
+                });
+                const classesJson = await classesRes.json();
+                setJoinedClasses(Array.isArray(classesJson.classes) ? classesJson.classes : []);
+              } catch (e) {
+                // silent fail, dashboard already handles load errors elsewhere
+              }
+            }}
+          />
         </div>
         <div className="lg:col-span-3 h-full">
           <ProfileSection role={role} theme={theme} profile={profile} />
