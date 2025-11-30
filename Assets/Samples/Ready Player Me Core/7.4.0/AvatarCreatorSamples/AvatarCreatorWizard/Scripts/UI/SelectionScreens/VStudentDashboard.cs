@@ -31,6 +31,7 @@ public class VStudentDashboard : State
     public override void DeactivateState()
     {
         UWBStateMachine.unregisterBridgeFunction("Logout");
+        UWBStateMachine.unregisterBridgeFunction("StartLecture");
         Debug.Log("VStudentDashboard State Deactivated");
     }
 

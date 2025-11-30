@@ -424,3 +424,114 @@ def lectures_past():
 
     lectures = [serialize_lecture(l) for l in q.all()]
     return jsonify({"lectures": lectures}), 200
+
+
+# -------- Lecture Scheduling --------
+
+@api.route('/lecture/schedule', methods=['POST'])
+def lecture_schedule():
+    data = request.json
+    auth_token = data.get('authToken')
+    classid = data.get('classid')
+    title = data.get('title')
+    start_time_str = data.get('startTime')  # ISO8601 string optional
+
+    if not all([auth_token, classid, title]):
+        return jsonify({"error": "authToken, classid, title required"}), 200
+
+    decoded = decode_token(auth_token)
+    if 'error' in decoded:
+        return jsonify(decoded), 200
+
+    clientId = decoded.get('clientId')
+    user = User.query.filter_by(username=clientId).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 200
+
+    # Ensure user is teacher (mode == 2) via ClientData
+    clientdata = ClientData.query.filter_by(userid=user.id).first()
+    if not clientdata or clientdata.mode != 2:
+        return jsonify({"error": "Only teachers can schedule lectures"}), 200
+
+    cls = Class.query.filter_by(classid=classid).first()
+    if not cls:
+        return jsonify({"error": "Class not found"}), 200
+
+    # Optional: verify teacher is associated with class as role=2 or is class teacher
+    association = db.session.execute(
+        class_user_association.select().where(
+            (class_user_association.c.user_id == user.id) & (class_user_association.c.class_id == cls.id) & (class_user_association.c.role == 2)
+        )
+    ).first()
+    if not association and cls.teacherid != user.id:
+        return jsonify({"error": "Teacher not associated with class"}), 200
+
+    # Parse start time; default now (UTC naive to match existing seed data style)
+    if start_time_str:
+        try:
+            # Accept both with and without timezone; store naive UTC if tz-aware
+            dt = datetime.fromisoformat(start_time_str)
+            if dt.tzinfo is not None:
+                dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+            start_time = dt
+        except Exception:
+            return jsonify({"error": "Invalid startTime format. Use ISO8601."}), 200
+    else:
+        start_time = datetime.utcnow()
+
+    new_lec = Lecture(
+        class_id=cls.id,
+        title=title,
+        teacherid=user.id,
+        start_time=start_time,
+        end_time=None
+    )
+    db.session.add(new_lec)
+    db.session.commit()
+
+    return jsonify({"success": True, "lecture": serialize_lecture(new_lec)}), 200
+
+
+@api.route('/lecture/end', methods=['POST'])
+def lecture_end():
+    data = request.json
+    auth_token = data.get('authToken')
+    lecture_id = data.get('lectureId')  # numeric id
+    # We now always use current UTC time; ignore any provided endTime.
+
+    if not all([auth_token, lecture_id]):
+        return jsonify({"error": "authToken and lectureId required"}), 200
+
+    decoded = decode_token(auth_token)
+    if 'error' in decoded:
+        return jsonify(decoded), 200
+
+    clientId = decoded.get('clientId')
+    user = User.query.filter_by(username=clientId).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 200
+
+    lecture = Lecture.query.filter_by(id=lecture_id).first()
+    if not lecture:
+        return jsonify({"error": "Lecture not found"}), 200
+
+    # Verify teacher privileges and ownership
+    clientdata = ClientData.query.filter_by(userid=user.id).first()
+    if not clientdata or clientdata.mode != 2:
+        return jsonify({"error": "Only teachers can end lectures"}), 200
+    if lecture.teacherid != user.id:
+        return jsonify({"error": "You are not the lecture's teacher"}), 200
+
+    if lecture.end_time is not None:
+        return jsonify({"error": "Lecture already ended"}), 200
+
+    end_time = datetime.utcnow()
+
+    # Ensure end_time is not before start_time
+    if end_time < lecture.start_time:
+        return jsonify({"error": "endTime cannot be before startTime"}), 200
+
+    lecture.end_time = end_time
+    db.session.commit()
+
+    return jsonify({"success": True, "lecture": serialize_lecture(lecture)}), 200

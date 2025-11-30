@@ -24,12 +24,14 @@ public class VTeacherDashboard : State
         UWBStateMachine.ExecuteJs(script);
 
         UWBStateMachine.registerBridgeFunction("Logout", Logout);
+        UWBStateMachine.registerBridgeFunction("StartLecture", StartLecture);
     }
 
     public override void DeactivateState()
     {
         UWBStateMachine.unregisterBridgeFunction("Logout");
-        Debug.Log("VStudentDashboard State Deactivated");
+        UWBStateMachine.unregisterBridgeFunction("StartLecture");
+        Debug.Log("VTeacherDashboard State Deactivated");
     }
 
     private void Logout(JObject arg, string callbackId)
@@ -37,5 +39,19 @@ public class VTeacherDashboard : State
         Debug.Log("Logout called from web.");
         VAuthManager.Instance.Logout();
         StateMachine.SetState(StateType.VAuth);
+    }
+
+    private void StartLecture(JObject arg, string callbackId)
+    {
+        Debug.Log("StartLecture called from web.");
+
+        if (!VAuthManager.IsAuthenticated())
+        {
+            Debug.LogWarning("User is not authenticated. Redirecting to Auth state.");
+            StateMachine.SetState(StateType.VAuth);
+            return;
+        }
+
+        NCNetworkManager.Instance.StartClient(VAuthManager.Instance.GetAuthData());
     }
 }
