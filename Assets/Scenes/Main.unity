@@ -450,7 +450,7 @@ MonoBehaviour:
   m_MaxConnectAttempts: 60
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
-    Address: 192.168.1.7
+    Address: 127.0.0.1
     Port: 7777
     ServerListenAddress: 0.0.0.0
   DebugSimulator:
@@ -470,6 +470,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   classroomPrefab: {fileID: 755614470}
+  uiPrefab: {fileID: 1705717797}
 --- !u!114 &211649999
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1485,7 +1486,7 @@ MonoBehaviour:
       Password: 
       ProxyServer: 0
     webRtc: 0
-    remoteDebugging: 0
+    remoteDebugging: 1
     remoteDebuggingPort: 9022
     remoteDebuggingAllowedOrigins:
     - http://127.0.0.1:9022
@@ -2542,7 +2543,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1705717798
 Transform:
   m_ObjectHideFlags: 0

@@ -77,6 +77,8 @@ public class NCNetworkManager : MonoBehaviour
     private GameObject studentSpawnPositionMarkersObj;
     private string JWTSecret;
     [SerializeField] private GameObject classroomPrefab;
+    private bool isUIstarted = false;
+    [SerializeField] private GameObject uiPrefab;
 
     void Awake()
     {
@@ -103,7 +105,7 @@ public class NCNetworkManager : MonoBehaviour
 
     void OnGUI()
     {
-        if (!m_NetworkManager.IsClient && !m_NetworkManager.IsServer)
+        if (!m_NetworkManager.IsClient && !m_NetworkManager.IsServer && !isUIstarted)
         {
             // Rn generating dummy payload for connection approval
             // later this will used to fetch actual user data including RPM object
@@ -118,6 +120,11 @@ public class NCNetworkManager : MonoBehaviour
             GUILayout.BeginArea(new Rect(10, 10, 300, 300));
             if (GUILayout.Button("Client")) StartClient(payload);
             if (GUILayout.Button("Server")) StartServer();
+            if (GUILayout.Button("UI"))
+            {
+                isUIstarted = true;
+                uiPrefab.SetActive(true);
+            }
             GUILayout.EndArea();
             return;
         }

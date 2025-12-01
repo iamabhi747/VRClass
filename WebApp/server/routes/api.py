@@ -6,7 +6,7 @@ import jwt
 
 api = Blueprint("api", __name__)
 
-SECRET_KEY = "ifguwifgwbd756763ygihqvdwES$%$ghwbvdcyw8"
+SECRET_KEY = "debug-secret--------------------"
 ALGORITHM = "HS256"
 SERVER_NAME = "VRClass S1"
 
