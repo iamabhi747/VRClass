@@ -189,7 +189,18 @@ public class VAuth : State
                 status = 200,
                 message = "Authentication successful, proceeding to next state"
             }));
-            StateMachine.SetState(NextState);
+            
+            arg.TryGetValue("mode", out JToken modeToken);
+            int mode = modeToken != null && modeToken.Type == JTokenType.Integer ? modeToken.Value<int>() : 1;
+            Debug.Log("AuthNextState called, mode: " + mode);
+            if (mode == 2)
+            {
+                StateMachine.SetState(StateType.VTeacherDashboard);
+            }
+            else
+            {
+                StateMachine.SetState(NextState);
+            }
         }
         else
         {
