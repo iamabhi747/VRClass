@@ -84,7 +84,7 @@ def init_db(app):
                     userid=u.id,
                     name=f"Teacher {i}",
                     mode=2,
-                    avatarUrl=None,
+                    avatarUrl="https://models.readyplayer.me/68cfbcc1621c04ac67af90cf.glb",
                     employeeid=f"T{i:03d}",
                     designation="Lecturer",
                     department="CS"
@@ -102,7 +102,7 @@ def init_db(app):
                     userid=u.id,
                     name=f"Student {i}",
                     mode=1,
-                    avatarUrl=None,
+                    avatarUrl="https://models.readyplayer.me/68cfbcc1621c04ac67af90cf.glb",
                     rollno=f"S{i:03d}",
                     division="A",
                     department="CS"

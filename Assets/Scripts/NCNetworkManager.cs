@@ -79,6 +79,7 @@ public class NCNetworkManager : MonoBehaviour
     [SerializeField] private GameObject classroomPrefab;
     private bool isUIstarted = false;
     [SerializeField] private GameObject uiPrefab;
+    [SerializeField] private GameObject mainCamera;
 
     void Awake()
     {
@@ -151,6 +152,8 @@ public class NCNetworkManager : MonoBehaviour
         m_NetworkManager.OnClientStarted += OnClientStarted;
 
         classroomPrefab.SetActive(true);
+        uiPrefab.SetActive(false);
+        mainCamera.SetActive(false);
         
         m_NetworkManager.StartClient();
     }

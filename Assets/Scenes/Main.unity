@@ -471,6 +471,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   classroomPrefab: {fileID: 755614470}
   uiPrefab: {fileID: 1705717797}
+  mainCamera: {fileID: 648503193}
 --- !u!114 &211649999
 MonoBehaviour:
   m_ObjectHideFlags: 0
