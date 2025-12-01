@@ -466,7 +466,7 @@ export default function StudDashboard() {
     "clientId":"s1@abc.edu",
     "authToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InMxQGFiYy5lZHUiLCJuYW1lIjoiU3R1ZGVudCAxIiwic2VydmVyTmFtZSI6IlZSQ2xhc3MgUzEiLCJhdmF0YXJVcmwiOiIiLCJtb2RlIjoxLCJwb3NpdGlvbkluZGV4IjotMSwiZXhwIjoxNzk1OTc0Mjc0fQ.wY1OsWSRXjN6mwhCJdn5rcXjNSmYeWpmO0iTh0ZPk8o"
   }; // { authToken, clientId }
-  const isUnity = window.isUnity || false;
+  const isUnity = window.isUnity || true;
 
   const location = useLocation();
   const role = 'student';

@@ -630,7 +630,7 @@ export default function TeachDashboard() {
     "clientId":"t1@abc.edu",
     "authToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRJZCI6InQxQGFiYy5lZHUiLCJuYW1lIjoiVGVhY2hlciAxIiwic2VydmVyTmFtZSI6IlZSQ2xhc3MgUzEiLCJhdmF0YXJVcmwiOiIiLCJtb2RlIjoyLCJwb3NpdGlvbkluZGV4IjotMSwiZXhwIjozMzMwMDQzODQ0N30.z77u-3mkRCrzvm-aL05UtB68MWiSaM_DdnmboFoSIXw"
   }; // { authToken, clientId }
-  const isUnity = window.isUnity || false;
+  const isUnity = window.isUnity || true;
 
   const location = useLocation();
   const role ='teacher';

@@ -138,6 +138,7 @@ const InputField = ({ icon: Icon, type, placeholder, onTyping, value, onChange }
 );
 
 export default function AuthPage() {
+  console.log('Rendering AuthPage');
   const [role, setRole] = useState('student');
   const [isLogin, setIsLogin] = useState(true);
   const [isWarping, setIsWarping] = useState(false);
@@ -151,7 +152,7 @@ export default function AuthPage() {
   const [department, setDepartment] = useState('');
   const [employeeId, setEmployeeId] = useState('');
   const [designation, setDesignation] = useState('');
-  const [isUnity, _] = useState(window.isUnity || false);
+  const [isUnity, _] = useState(window.isUnity || true);
   const [error, setError] = useState(null); // { status, message }
   const typingTimeoutRef = useRef(null);
   const navigate = useNavigate();
@@ -197,7 +198,7 @@ export default function AuthPage() {
             setError(null);
             setIsWarping(true);
             setTimeout(() => {
-              run('AuthNextState', {}, (response) => {}, (error) => {});
+              run('AuthNextState', { "mode": role === 'teacher' ? 2 : 1 }, (response) => {}, (error) => {});
             }, 1000);
           },
           (error) => {
