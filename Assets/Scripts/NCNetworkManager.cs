@@ -80,6 +80,8 @@ public class NCNetworkManager : MonoBehaviour
     private bool isUIstarted = false;
     [SerializeField] private GameObject uiPrefab;
     [SerializeField] private GameObject mainCamera;
+    [SerializeField] private GameObject studentDeskPrefab;
+    [SerializeField] private GameObject teacherDeskPrefab;
 
     void Awake()
     {
@@ -167,6 +169,8 @@ public class NCNetworkManager : MonoBehaviour
         m_NetworkManager.OnClientConnectedCallback += OnClientConnected;
         m_NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
         m_NetworkManager.StartServer();
+
+        mainCamera.SetActive(false);
 
         studentSpawnPositionMarkersObj = GameObject.Find("StudentSpawnPositionMarkers");
         if (studentSpawnPositionMarkersObj != null)
@@ -267,7 +271,7 @@ public class NCNetworkManager : MonoBehaviour
                 Debug.Log($"Found empty student spawn position at index: {emptyIndex}");
                 if (emptyIndex != -1)
                 {
-                    var spawnMarker = studentSpawnPositionMarkersObj.transform.GetChild(emptyIndex);
+                    var spawnMarker = studentSpawnPositionMarkersObj.transform.GetChild(emptyIndex).transform.GetChild(0);
                     response.Position = spawnMarker.position;
                     response.Rotation = spawnMarker.rotation;
 
@@ -277,11 +281,11 @@ public class NCNetworkManager : MonoBehaviour
             }
             else if (mode == MTEACHER)
             {
-                GameObject teacherSpawnMarker = GameObject.Find("TeacherSpawnPositionMarker");
+                var teacherSpawnMarker = GameObject.Find("TeacherSpawnPositionMarker").transform.GetChild(0);
                 if (teacherSpawnMarker != null)
                 {
-                    response.Position = teacherSpawnMarker.transform.position;
-                    response.Rotation = teacherSpawnMarker.transform.rotation;
+                    response.Position = teacherSpawnMarker.position;
+                    response.Rotation = teacherSpawnMarker.rotation;
                 }
             }
 
@@ -310,6 +314,16 @@ public class NCNetworkManager : MonoBehaviour
             {
                 studentSpawnPositionMarkers[clientData.positionIndex] = true;
                 Debug.Log($"Marked student spawn position at index: {clientData.positionIndex} as occupied for clientId: {clientData.clientId}");
+
+                var deskPosition = studentSpawnPositionMarkersObj.transform.GetChild(clientData.positionIndex).transform.GetChild(1).position;
+                NetworkObject snetObj = Instantiate(studentDeskPrefab, deskPosition, Quaternion.identity).GetComponent<NetworkObject>();
+                snetObj.SpawnWithOwnership(clientId);
+            }
+            else if (clientData.mode == MTEACHER)
+            {
+                var deskPosition = GameObject.Find("TeacherSpawnPositionMarker").transform.GetChild(1).position;
+                NetworkObject tnetObj = Instantiate(teacherDeskPrefab, deskPosition, Quaternion.identity).GetComponent<NetworkObject>();
+                tnetObj.SpawnWithOwnership(clientId);
             }
             SendClientData(clientId, clientData);
         }

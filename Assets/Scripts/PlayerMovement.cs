@@ -10,7 +10,7 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] private float walkSpeed = 2f;
     [SerializeField] private float runSpeed = 5f;
     [SerializeField] private float mouseSensitivity = 250f;
-    [SerializeField] private float verticalLookLimit = 30f;
+    [SerializeField] private float verticalLookLimit = 50f;
     [SerializeField] private float horizontalLookLimit = 60f;
 
     private float verticalRotation = 0f;
@@ -44,6 +44,7 @@ public class PlayerMovement : NetworkBehaviour
     private Transform headBone;
     [SerializeField] private GameObject previewAvatar;
     [SerializeField] private RuntimeAnimatorController animatorController;
+    [SerializeField] private bool showCrosshair = false;
 
     // Methods
 
@@ -114,6 +115,7 @@ public class PlayerMovement : NetworkBehaviour
             Move();
             Rotate();
 
+
             SyncPlayerServerRpc(
                 transform.position,
                 transform.eulerAngles.y,
@@ -131,6 +133,8 @@ public class PlayerMovement : NetworkBehaviour
             {
                 SetMouseInputEnabled(true);
             }
+
+            Interaction();
         }
         else
         {
@@ -245,6 +249,41 @@ public class PlayerMovement : NetworkBehaviour
         Vector3 direction = headRotation * Vector3.forward;
 
         lookAtPosition = headBone.position + direction * 15f;
+    }
+
+    private void Interaction()
+    {
+        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 2.1f);
+        bool _showCrosshair = false;
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider.CompareTag("CrosshairEnable"))
+            {
+                _showCrosshair = true;
+            }
+            else if (hit.collider.CompareTag("Button"))
+            {
+                hit.collider.GetComponent<VButton>().OnHover();
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    hit.collider.GetComponent<VButton>().OnPress();
+                }
+            }
+        }
+        showCrosshair = _showCrosshair;
+    }
+
+    private void OnGUI()
+    {
+        if (showCrosshair)
+        {
+            float size = 20;
+            float x = (Screen.width - size) / 2;
+            float y = (Screen.height - size) / 2;
+            GUI.Label(new Rect(x, y, size, size), "+");
+        }
     }
 
     private class IKProxy : MonoBehaviour
