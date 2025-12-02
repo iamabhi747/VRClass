@@ -22,6 +22,16 @@ public class VButton : MonoBehaviour
                         if (response != null && response.success)
                         {
                             Debug.Log($"PDF processed successfully. Image Count: {response.imageCount}, Resource Path: {response.resourcePath}");
+                            string[] imageUrls = new string[response.imageCount];
+                            for (int i = 0; i < response.imageCount; i++)
+                            {
+                                imageUrls[i] = $"http://localhost:8000/{response.resourcePath}/{i+1}.png";
+                            }
+                            ResourceGallery resourceGallery = FindObjectOfType<ResourceGallery>();
+                            if (resourceGallery != null)
+                            {
+                                resourceGallery.UpdateGallery(imageUrls);
+                            }
                         }
                         else
                         {
