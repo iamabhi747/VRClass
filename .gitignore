@@ -80,3 +80,5 @@ __pycache__/
 
 # VRClass Databases
 vrclass.db
+uploads/
+pdfresources/

@@ -266,9 +266,19 @@ public class PlayerMovement : NetworkBehaviour
             {
                 hit.collider.GetComponent<VButton>().OnHover();
 
-                if (Input.GetMouseButtonDown(0))
+                if (mouseInputEnabled && Input.GetMouseButtonDown(0))
                 {
+                    if (hit.collider.GetComponent<DisableInput>() != null)
+                    {
+                        SetMouseInputEnabled(false);
+                    }
+
                     hit.collider.GetComponent<VButton>().OnPress();
+
+                    if (hit.collider.GetComponent<DisableInput>() != null)
+                    {
+                        SetMouseInputEnabled(true);
+                    }
                 }
             }
         }

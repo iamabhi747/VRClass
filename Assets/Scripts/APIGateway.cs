@@ -218,4 +218,34 @@ public class APIGateway : MonoBehaviour
             OnSuccess?.Invoke(authData);
         }, OnError);
     }
+
+    public class PDFProcessRequest
+    {
+        public string filehash;
+    }
+
+    public class PDFProcessResponse
+    {
+        public bool success;
+        public string message;
+        public int imageCount;
+        public string resourcePath;
+    }
+
+    public static void ProcessPDF(string filehash, Action<PDFProcessResponse> OnResult)
+    {
+        if (Instance == null)
+        {
+            Debug.LogError("APIGateway instance is not initialized.");
+            return;
+        }
+
+        string url = Instance.host + "/processPDF";
+        Instance.POSTJsonRequest<PDFProcessRequest, PDFProcessResponse>(url, new PDFProcessRequest { filehash = filehash },
+        OnResult,
+        (errorMessage) =>
+        {
+            OnResult?.Invoke(new PDFProcessResponse { success = false, message = errorMessage });
+        });
+    }
 }

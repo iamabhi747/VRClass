@@ -5,6 +5,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///vrclass.db'
+app.config['MAX_CONTENT_LENGTH'] = 120 * 1024 * 1024
 
 # Temporarily disable CORS restrictions (allow all origins)
 CORS(app, resources={r"/*": {"origins": "*"}})

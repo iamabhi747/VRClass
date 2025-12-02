@@ -3,12 +3,19 @@ from urllib.parse import unquote
 from .db import db, User, ClientData, Class, Lecture, class_user_association
 from datetime import datetime, timedelta, timezone
 import jwt
+import os
+import hashlib
+import pdf2image
 
 api = Blueprint("api", __name__)
 
 SECRET_KEY = "debug-secret--------------------"
 ALGORITHM = "HS256"
 SERVER_NAME = "VRClass S1"
+UPLOAD_FOLDER = 'uploads'
+RESOURCE_FOLDER = 'static/pdfresources'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(RESOURCE_FOLDER, exist_ok=True)
 
 def create_jwt_token(data: dict, minutes_to_expire: int = 60 * 24 * 365) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=minutes_to_expire)
@@ -553,3 +560,60 @@ def lecture_end():
     db.session.commit()
 
     return jsonify({"success": True, "lecture": serialize_lecture(lecture)}), 200
+
+
+# --------- File Upload Endpoint ---------
+
+@api.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    if file:
+        hasher = hashlib.sha256()
+        for chunk in iter(lambda: file.stream.read(8192), b''):
+            hasher.update(chunk)
+        file.stream.seek(0)
+        filename = hasher.hexdigest()
+        save_path = os.path.join(UPLOAD_FOLDER, filename)
+        
+        # Flask saves the file automatically
+        file.save(save_path)
+        
+        return jsonify({
+            "message": "File uploaded successfully",
+            "filehash": filename,
+        }), 200
+    
+    return jsonify({"error": "File upload failed"}), 500
+
+
+@api.route('/processPDF', methods=['POST'])
+def process_pdf():
+    data = request.json
+    filename = data.get('filehash')
+    if not filename:
+        return jsonify({"error": "filename required"}), 400
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(filepath):
+        return jsonify({"error": "File not found"}), 404
+    
+    images = pdf2image.convert_from_path(filepath)
+    outpath = os.path.join(RESOURCE_FOLDER, filename)
+    os.makedirs(outpath, exist_ok=True)
+
+    for i, img in enumerate(images):
+        img_path = os.path.join(outpath, f"{i+1}.png")
+        img.save(img_path, 'PNG')
+
+    return jsonify({
+        "success": True,
+        "message": "PDF processed successfully",
+        "imageCount": len(images),
+        "resourcePath": outpath
+    }), 200
