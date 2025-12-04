@@ -394,7 +394,7 @@ const ProfileSection = ({ role, theme, profile }) => {
         <div className="relative group cursor-pointer">
            <div className={`absolute inset-0 rounded-full ${theme.bg} blur-2xl opacity-20 group-hover:opacity-40 transition-opacity`} />
            <img 
-             src={profileData.avatarUrl} 
+             src={`http://localhost:8000/static/images/${profileData.avatarUrl}.png`} 
              alt="Avatar" 
              className="relative w-32 h-32 rounded-full border-4 border-zinc-800 bg-black object-cover shadow-2xl"
            />
