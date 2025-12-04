@@ -17,6 +17,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
+    gender = db.Column(db.String(1), nullable=False, default='M')  # 'M' or 'F'
 
     # Classes this user is enrolled in / associated with
     classes = db.relationship(
@@ -77,7 +78,8 @@ def init_db(app):
             # Create teachers
             teachers = []
             for i in range(1, 2 + 1):
-                u = User(username=f"t{i}@abc.edu", password="testpass")
+                gender = 'M' if i % 2 == 1 else 'F'
+                u = User(username=f"t{i}@abc.edu", password="testpass", gender=gender)
                 db.session.add(u)
                 db.session.flush()
                 cd = ClientData(
@@ -95,7 +97,8 @@ def init_db(app):
             # Create students
             students = []
             for i in range(1, 5 + 1):
-                u = User(username=f"s{i}@abc.edu", password="testpass")
+                gender = 'M' if i % 2 == 1 else 'F'
+                u = User(username=f"s{i}@abc.edu", password="testpass", gender=gender)
                 db.session.add(u)
                 db.session.flush()
                 cd = ClientData(

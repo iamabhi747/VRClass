@@ -60,6 +60,11 @@ def register():
     data = request.json
     username = data.get('username')
     password = data.get('password')
+    gender = data.get('gender', 'M')
+    if isinstance(gender, str):
+        gender = gender.strip().upper()[:1]
+    if gender not in ('M', 'F'):
+        return jsonify({"error": "Invalid gender. Use 'M' or 'F'."}), 200
     name = data.get('name', "Nick" + str(int(datetime.now().timestamp())))
     mode = data.get('mode', 1)
     avatarUrl = data.get('avatarUrl', "")
@@ -77,7 +82,7 @@ def register():
     if User.query.filter_by(username=username).first():
         return jsonify({"error": "Username already exists"}), 200
 
-    new_user = User(username=username, password=password)
+    new_user = User(username=username, password=password, gender=gender)
     db.session.add(new_user)
     db.session.commit()
 
@@ -126,6 +131,15 @@ def profile():
         elif user and clientdata and request.method == 'POST':
             name = data.get('name', clientdata.name)
             avatarUrl = data.get('avatarUrl', clientdata.avatarUrl)
+
+            # Optional gender update (validate 'M' or 'F')
+            if 'gender' in data:
+                g = data.get('gender')
+                if isinstance(g, str):
+                    g = g.strip().upper()[:1]
+                if g not in ('M', 'F'):
+                    return jsonify({"error": "Invalid gender. Use 'M' or 'F'."}), 200
+                user.gender = g
 
             if clientdata.mode == 1:
                 rollno = data.get('rollno', clientdata.rollno)
@@ -185,6 +199,7 @@ def generalprofile():
                 "name": clientdata.name,
                 "avatarUrl": clientdata.avatarUrl,
                 "mode": clientdata.mode,
+                "gender": {"M": "Male", "F": "Female"}.get(user.gender, '-'),
             }
             if clientdata.mode == 1:
                 out.update({
