@@ -97,7 +97,8 @@ export default function EditProfile() {
     empId: "",
     designation: "",
     department: "",
-    avatarUrl: ""
+    avatarUrl: "",
+    gender: ""
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -127,7 +128,8 @@ export default function EditProfile() {
           empId: data.employeeid || "",
           designation: data.designation || "",
           department: data.department || "",
-          avatarUrl: data.avatarUrl || ""
+          avatarUrl: data.avatarUrl || "",
+          gender: data.gender || ""
         });
         setError("");
       })
@@ -152,7 +154,8 @@ export default function EditProfile() {
           employeeid: formData.empId,
           designation: formData.designation,
           department: formData.department,
-          avatarUrl: formData.avatarUrl
+          avatarUrl: formData.avatarUrl,
+          gender: formData.gender
         })
       });
       const data = await res.json();
@@ -311,14 +314,25 @@ export default function EditProfile() {
               />
             </div>
 
-            {/* Avatar URL (optional) */}
+            {/* Gender */}
             <div className="md:col-span-2">
-              <TechInput
-                label="Avatar URL"
-                icon={Camera}
-                value={formData.avatarUrl}
-                onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-              />
+              <div className="relative group">
+                <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1.5 block ml-1">Gender</label>
+                <div className={`relative flex items-center bg-black/40 border rounded-xl overflow-hidden transition-all duration-300 border-white/10 group-hover:border-white/20`}>
+                  <div className={`p-3 flex items-center justify-center border-r border-white/5 text-zinc-500`}>
+                    <User size={18} />
+                  </div>
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    className="w-full bg-transparent px-4 py-3 text-sm text-white font-medium focus:outline-none appearance-none"
+                  >
+                    <option value="" className="bg-[#0a0a0a] text-white">Select…</option>
+                    <option value="Male" className="bg-[#0a0a0a] text-white">Male</option>
+                    <option value="Female" className="bg-[#0a0a0a] text-white">Female</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 

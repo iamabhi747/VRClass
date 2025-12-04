@@ -5,7 +5,7 @@ import {
   Calendar, Clock, Edit2, Shield, BookOpen, 
   ChevronRight, Globe, Zap, Video, Plus, LogOut, Settings, 
   Hash, Mail, GraduationCap, Users, ArrowRight,
-  Atom, Code2, Calculator
+  Atom, Code2, Calculator, User, RefreshCcw
 } from 'lucide-react';
 import { run, resolveCallback } from '../bridge';
 
@@ -341,6 +341,7 @@ const ProfileSection = ({ role, theme, profile }) => {
     field2_value: role === 'teacher' ? profile.designation || 'Professor' : profile.division || '—',
     field3_label: 'Department',
     field3_value: profile.department || '—',
+    gender: profile.gender || '—',
     email: profile.clientId ? profile.clientId : '—',
     avatarUrl: profile.avatarUrl || ''
   } : (role === 'teacher' ? {
@@ -350,6 +351,7 @@ const ProfileSection = ({ role, theme, profile }) => {
     field1_value: "FAC-9920",
     field2_label: "Designation",
     field2_value: "Professor",
+    gender: '—',
     email: "sarah.c@uni.edu",
     avatarUrl: ""
   } : {
@@ -359,6 +361,7 @@ const ProfileSection = ({ role, theme, profile }) => {
     field1_value: "21-CSE-045",
     field2_label: "Division",
     field2_value: "Batch A2",
+    gender: '—',
     email: "alex.c@uni.edu",
     avatarUrl: ""
   });
@@ -434,6 +437,16 @@ const ProfileSection = ({ role, theme, profile }) => {
             </div>
             <div className="w-full h-px bg-white/5" />
             
+              {/* Gender */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded bg-white/5 text-zinc-400"><User size={12} /></div>
+                  <span className="text-zinc-500 text-xs uppercase">Gender</span>
+                </div>
+                <span className="text-white text-xs">{profileData.gender}</span>
+              </div>
+              <div className="w-full h-px bg-white/5" />
+
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded bg-white/5 text-zinc-400"><Mail size={12} /></div>
@@ -446,6 +459,26 @@ const ProfileSection = ({ role, theme, profile }) => {
 
       {/* Edit Profile Button */}
       <div className="mt-4">
+        <div className="flex items-center gap-2 mb-2">
+          <button
+            onClick={() => {
+              // Simple refresh to re-run data loaders
+              if (window.isUnity) {
+                // In Unity host, fallback to reloading the webview
+                window.location.reload();
+              } else {
+                // Standard browser refresh
+                window.location.reload();
+              }
+            }}
+            className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white text-sm font-bold transition-colors"
+          >
+            <span className="inline-flex items-center gap-2 justify-center">
+              <RefreshCcw size={14} className="text-zinc-300" />
+              Refresh
+            </span>
+          </button>
+        </div>
         <button 
         onClick={() => navigate('/StudEditP', { state: { authData: window.authData || {
           "clientId":"s1@abc.edu",

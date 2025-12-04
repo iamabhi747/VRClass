@@ -49,6 +49,45 @@ const StudentInput = ({ label, icon: Icon, value, onChange, disabled = false }) 
   );
 };
 
+// --- REUSABLE SELECT FIELD (Violet Theme) ---
+const StudentSelect = ({ label, icon: Icon, value, onChange, disabled = false, children }) => {
+   const [isFocused, setIsFocused] = useState(false);
+
+   return (
+      <div className="relative group">
+         <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1.5 block ml-1">
+            {label}
+         </label>
+         <div
+            className={`
+               relative flex items-center bg-black/40 border rounded-xl overflow-hidden transition-all duration-300
+               ${isFocused ? 'border-violet-500/50 shadow-[0_0_15px_rgba(139,92,246,0.15)]' : 'border-white/10 group-hover:border-white/20'}
+               ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+         >
+            <div className={`p-3 flex items-center justify-center border-r border-white/5 ${isFocused ? 'text-violet-400' : 'text-zinc-500'}`}>
+                <Icon size={18} />
+            </div>
+            <select
+               value={value}
+               onChange={onChange}
+               disabled={disabled}
+               onFocus={() => setIsFocused(true)}
+               onBlur={() => setIsFocused(false)}
+               className="w-full bg-transparent px-4 py-3 text-sm text-white font-medium focus:outline-none appearance-none"
+            >
+               {children}
+            </select>
+            <motion.div
+               initial={{ width: 0 }}
+               animate={{ width: isFocused ? '100%' : '0%' }}
+               className="absolute bottom-0 left-0 h-[2px] bg-violet-500"
+            />
+         </div>
+      </div>
+   );
+};
+
 // --- MAIN COMPONENT ---
 export default function StudentEditProfile() {
    const navigate = useNavigate();
@@ -62,7 +101,8 @@ export default function StudentEditProfile() {
       rollNo: "",
       division: "",
       department: "",
-      avatarUrl: ""
+      avatarUrl: "",
+      gender: ""
    });
 
    const [loading, setLoading] = useState(false);
@@ -89,7 +129,8 @@ export default function StudentEditProfile() {
                rollNo: data.rollno || "",
                division: data.division || "",
                department: data.department || "",
-               avatarUrl: data.avatarUrl || ""
+               avatarUrl: data.avatarUrl || "",
+               gender: data.gender || ""
             });
             setError("");
          })
@@ -111,11 +152,12 @@ export default function StudentEditProfile() {
             body: JSON.stringify({
                authToken: authData.authToken,
                name: formData.name,
-               // Server updates name and avatarUrl; others are ignored server-side
+               // Server updates name and avatarUrl; adding gender for future support
                avatarUrl: formData.avatarUrl,
                rollno: formData.rollNo,
                division: formData.division,
-               department: formData.department
+               department: formData.department,
+               gender: formData.gender
             })
          });
          const data = await res.json();
@@ -263,15 +305,19 @@ export default function StudentEditProfile() {
                  />
               </div>
 
-              {/* Avatar URL (optional) */}
-              <div className="md:col-span-2">
-                 <StudentInput 
-                    label="Avatar URL" 
-                    icon={Camera} 
-                    value={formData.avatarUrl} 
-                    onChange={(e) => setFormData({...formData, avatarUrl: e.target.value})} 
-                 />
-              </div>
+                  {/* Gender */}
+                  <div className="md:col-span-2">
+                     <StudentSelect
+                        label="Gender"
+                        icon={User}
+                        value={formData.gender}
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                     >
+                        <option value="" className="bg-[#0a0a0a] text-white">Select…</option>
+                        <option value="Male" className="bg-[#0a0a0a] text-white">Male</option>
+                        <option value="Female" className="bg-[#0a0a0a] text-white">Female</option>
+                     </StudentSelect>
+                  </div>
            </div>
 
            {/* 3. ACTION BUTTONS */}
