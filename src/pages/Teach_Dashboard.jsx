@@ -563,7 +563,14 @@ const ProfileSection = ({ role, theme, profile }) => {
              className="relative w-32 h-32 rounded-full border-4 border-zinc-800 bg-black object-cover shadow-2xl"
            />
            <div className={`absolute bottom-1 right-1 p-2 rounded-full ${theme.bg} text-white border-4 border-zinc-900 hover:scale-110 transition-transform shadow-lg`}>
-              <Edit2 size={14} />
+              <Edit2
+              onClick={() => {
+                run('EditAvatar', {
+                  avatarUrl: profileData.avatarUrl,
+                  gender: profileData.gender
+                }, () => {}, () => {});
+              }}
+              size={14} />
            </div>
         </div>
         <h2 className="text-xl font-bold text-white mt-4">{profileData.name}</h2>

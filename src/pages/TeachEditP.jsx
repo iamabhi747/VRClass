@@ -16,6 +16,9 @@ import {
   Sparkles,
   Edit2,
 } from "lucide-react";
+import { run, resolveCallback } from '../bridge';
+
+window.resolveCallback = resolveCallback;
 
 // --- REUSABLE INPUT FIELD WITH GLOW EFFECT ---
 
@@ -256,7 +259,14 @@ export default function EditProfile() {
               {/* Edit Badge */}
 
               <button className="absolute bottom-0 right-0 p-3 bg-teal-600 text-white rounded-full border-4 border-[#0a0a0a] shadow-lg hover:scale-110 hover:bg-teal-500 transition-all">
-                <Edit2 size={16} />
+                <Edit2
+                onClick={() => {
+                  run('EditAvatar', {
+                    avatarUrl: formData.avatarUrl,
+                    gender: formData.gender
+                  }, () => {}, () => {});
+                }}
+                size={16} />
               </button>
             </div>
 

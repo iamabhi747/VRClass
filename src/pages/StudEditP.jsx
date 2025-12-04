@@ -5,6 +5,9 @@ import {
    Save, User, Hash, Building2, 
    Camera, Sparkles, Edit2, GraduationCap, Users 
 } from 'lucide-react';
+import { run, resolveCallback } from '../bridge';
+
+window.resolveCallback = resolveCallback;
 
 // --- REUSABLE INPUT FIELD (Violet Theme) ---
 const StudentInput = ({ label, icon: Icon, value, onChange, disabled = false }) => {
@@ -255,7 +258,14 @@ export default function StudentEditProfile() {
 
                  {/* Edit Badge */}
                  <button className="absolute bottom-0 right-0 p-3 bg-violet-600 text-white rounded-full border-4 border-[#0a0a0a] shadow-lg hover:scale-110 hover:bg-violet-500 transition-all">
-                    <Edit2 size={16} />
+                    <Edit2
+                    onClick={() => {
+                        run('EditAvatar', {
+                           avatarUrl: formData.avatarUrl,
+                           gender: formData.gender
+                        }, () => {}, () => {});
+                     }}
+                    size={16} />
                  </button>
               </div>
               
