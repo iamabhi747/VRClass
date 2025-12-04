@@ -46,14 +46,16 @@ public class ProfileManager : MonoBehaviour
         if (!File.Exists(filePath))
         {
             SDKLogger.Log(TAG, $"Session file not found in {filePath}");
+            Debug.Log("No session file found.");
             return false;
         }
         var bytes = File.ReadAllBytes(filePath);
         var json = Encoding.UTF8.GetString(bytes);
         var userSession = JsonConvert.DeserializeObject<UserSession>(json);
         AuthManager.SetUser(userSession);
+        Debug.Log($"Loaded session for userId: {userSession.Id}");
 
-        SetProfileData(userSession);
+        // SetProfileData(userSession);
 
         SDKLogger.Log(TAG, $"Loaded session from {filePath}");
         return true;
@@ -61,10 +63,11 @@ public class ProfileManager : MonoBehaviour
 
     public void SaveSession(UserSession userSession)
     {
+        Debug.Log($"Saving session for userId: {userSession.Id}");
         var json = JsonConvert.SerializeObject(userSession);
         DirectoryUtility.ValidateDirectory(directoryPath);
         File.WriteAllBytes(filePath, Encoding.UTF8.GetBytes(json));
-        SetProfileData(userSession);
+        // SetProfileData(userSession);
 
         SDKLogger.Log(TAG, $"Saved session to {filePath}");
     }

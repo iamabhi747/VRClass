@@ -1475,17 +1475,6 @@ Transform:
   - {fileID: 1352930122}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &854279430 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5276283296979447179, guid: 6a199e79851fe4442b80b453d7c90378, type: 3}
-  m_PrefabInstance: {fileID: 5276283296666495117}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &951389970
 GameObject:
   m_ObjectHideFlags: 0
@@ -2986,7 +2975,7 @@ MonoBehaviour:
   - {fileID: 1673427433}
   - {fileID: 1770661063}
   backButton: {fileID: 1540936656}
-  saveButton: {fileID: 854279430}
+  saveButtonX: {fileID: 0}
   loadingManager: {fileID: 1810997809}
   startingState: 1
   avatarCreatorData: {fileID: 11400000, guid: b641399742edb414380c1d690dbd37df, type: 2}
@@ -3585,11 +3574,15 @@ PrefabInstance:
     - target: {fileID: 57378948363611735, guid: 94e6adc5c795ff348bce129db0368b1f, type: 3}
       propertyPath: saveButton
       value: 
-      objectReference: {fileID: 854279430}
+      objectReference: {fileID: 0}
     - target: {fileID: 57378948363611735, guid: 94e6adc5c795ff348bce129db0368b1f, type: 3}
       propertyPath: signupElement
       value: 
       objectReference: {fileID: 1181375370}
+    - target: {fileID: 57378948363611735, guid: 94e6adc5c795ff348bce129db0368b1f, type: 3}
+      propertyPath: profileManager
+      value: 
+      objectReference: {fileID: 1705717799}
     - target: {fileID: 57378948363611735, guid: 94e6adc5c795ff348bce129db0368b1f, type: 3}
       propertyPath: accountCreationPopup
       value: 
@@ -4603,6 +4596,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -60
       objectReference: {fileID: 0}
+    - target: {fileID: 5276283296979447177, guid: 6a199e79851fe4442b80b453d7c90378, type: 3}
+      propertyPath: m_Name
+      value: SaveButtonX
+      objectReference: {fileID: 0}
     - target: {fileID: 5276283297126862540, guid: 6a199e79851fe4442b80b453d7c90378, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -60
@@ -4704,7 +4701,8 @@ PrefabInstance:
       value: -60
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5276283296979447177, guid: 6a199e79851fe4442b80b453d7c90378, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a199e79851fe4442b80b453d7c90378, type: 3}

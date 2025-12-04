@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using ReadyPlayerMe.AvatarCreator;
 using ReadyPlayerMe.Core;
 using ReadyPlayerMe.Core.Analytics;
@@ -13,7 +14,7 @@ public class AvatarCreatorStateMachine : StateMachine
 
     [SerializeField] private List<State> states;
     [SerializeField] private Button backButton;
-    [SerializeField] private Button saveButton;
+    [SerializeField] private Button saveButtonX;
     [SerializeField] private LoadingManager loadingManager;
     [SerializeField] private StateType startingState;
     [SerializeField] public AvatarCreatorData avatarCreatorData;
@@ -40,6 +41,8 @@ public class AvatarCreatorStateMachine : StateMachine
         avatarCreatorData.AvatarProperties.BodyType = CoreSettingsHandler.CoreSettings.BodyType;
         avatarCreatorData.AvatarProperties.Gender = defaultGender;
         Initialize();
+
+        profileManager.LoadSession();
 
         // SetState(profileManager.LoadSession() ? StateType.AvatarSelection : startingState);
         // ShowLoadPreviousAvatarPopup();
@@ -81,14 +84,15 @@ public class AvatarCreatorStateMachine : StateMachine
 
     private void OnSignedIn(UserSession userSession)
     {
+        Debug.Log($"User signed in with userId: {userSession.Id}");
         profileManager.SaveSession(userSession);
     }
 
     private void OnSignedOut()
     {
-        avatarCreatorData.AvatarProperties.Id = string.Empty;
-        SetState(startingState);
-        ClearPreviousStates();
+        // avatarCreatorData.AvatarProperties.Id = string.Empty;
+        // SetState(startingState);
+        // ClearPreviousStates();
     }
 
     private void OnSessionRefreshed(UserSession userSession)
@@ -112,7 +116,7 @@ public class AvatarCreatorStateMachine : StateMachine
     private void OnStateChanged(StateType current, StateType previous)
     {
         backButton.gameObject.SetActive(CanShowBackButton(current, previous));
-        saveButton.gameObject.SetActive(current == StateType.Editor);
+        // saveButton.gameObject.SetActive(current == StateType.Editor);
 
         if (current == StateType.End)
         {

@@ -248,4 +248,32 @@ public class APIGateway : MonoBehaviour
             OnResult?.Invoke(new PDFProcessResponse { success = false, message = errorMessage });
         });
     }
+
+    public class AvatarUpdateRequest
+    {
+        public string authToken;
+        public string avatarUrl;
+    }
+
+    public static void UpdateAvatarUrl(string authToken, string avatarUrl, Action<NCNetworkManager.ConnectionPayload> OnResult)
+    {
+        if (Instance == null)
+        {
+            Debug.LogError("APIGateway instance is not initialized.");
+            return;
+        }
+
+        var payload = new AvatarUpdateRequest
+        {
+            authToken = authToken,
+            avatarUrl = avatarUrl
+        };
+        string url = Instance.host + "/profile";
+        Instance.POSTJsonRequest<AvatarUpdateRequest, NCNetworkManager.ConnectionPayload>(url, payload,
+        OnResult,
+        (errorMessage) =>
+        {
+            OnResult?.Invoke(new NCNetworkManager.ConnectionPayload { error = errorMessage });
+        });
+    }
 }

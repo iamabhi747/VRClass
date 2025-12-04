@@ -189,4 +189,57 @@ class VAuthManager: MonoBehaviour
     {
         return auth;
     }
+
+    public static void UpdateAvatarUrl(string avatarUrl, Action<bool> OnComplete)
+    {
+        if (Instance == null || !IsAuthenticated())
+        {
+            Debug.LogError($"{TAG}: Cannot update avatar URL. User is not authenticated.");
+            OnComplete?.Invoke(false);
+            return;
+        }
+        
+        APIGateway.UpdateAvatarUrl(
+            Instance.auth.authToken,
+            avatarUrl,
+        (response) =>
+        {
+            if (response.error == null || response.error == string.Empty)
+            {
+                Debug.Log($"{TAG}: Avatar URL updated successfully on server.");
+                Instance.auth.authToken = response.authToken;
+                Instance.SaveAuthData();
+                OnComplete?.Invoke(true);
+            }
+            else
+            {
+                Debug.LogError($"{TAG}: Failed to update Avatar URL on server. Message: {response.error}");
+                OnComplete?.Invoke(false);
+            }
+        });
+    }
+
+    public static void GotoDashboard(StateMachine stateMachine)
+    {
+        if (IsAuthenticated())
+        {
+            var clientData = GetClientData();
+            if (clientData != null && clientData.Value.mode == 1)
+            {
+                stateMachine.SetState(StateType.VStudentDashboard);
+            }
+            else if (clientData != null && clientData.Value.mode == 2)
+            {
+                stateMachine.SetState(StateType.VTeacherDashboard);
+            }
+            else
+            {
+                stateMachine.SetState(StateType.VAuth);
+            }
+        }
+        else
+        {
+            stateMachine.SetState(StateType.VAuth);
+        }
+    }
 }

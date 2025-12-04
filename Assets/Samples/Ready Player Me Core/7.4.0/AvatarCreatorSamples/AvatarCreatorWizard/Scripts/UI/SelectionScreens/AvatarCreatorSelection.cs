@@ -19,12 +19,16 @@ public class AvatarCreatorSelection : State, IDisposable
 
     [SerializeField] private CategoryUICreator categoryUICreator;
     [SerializeField] private AssetButtonCreator assetButtonCreator;
-    [SerializeField] private Button saveButton;
     [SerializeField] private AvatarConfig inCreatorConfig;
     [SerializeField] private RuntimeAnimatorController animator;
-    [SerializeField] private SignupElement signupElement;
+    private SignupElement signupElement;
     private PartnerAssetsManager partnerAssetManager;
     private AvatarManager avatarManager;
+
+    [SerializeField] private Button saveButtonp;
+    [SerializeField] private Button discardButton;
+    [SerializeField] private Button newAvatarButton;
+    [SerializeField] private ProfileManager profileManager;
 
     private GameObject currentAvatar;
     private Quaternion lastRotation = new Quaternion(0f, 0f, 0f, 0f);
@@ -42,25 +46,72 @@ public class AvatarCreatorSelection : State, IDisposable
 
     public override void ActivateState()
     {
-        saveButton.onClick.AddListener(OnSaveButton);
-        signupElement.OnContinueWithoutSignup.AddListener(Save);
-        signupElement.OnSendEmail.AddListener(OnSendEmail);
         categoryUICreator.OnCategorySelected += OnCategorySelected;
+        newAvatarButton.onClick.AddListener(CreateNewAvatar);
+        discardButton.onClick.AddListener(DiscardAndQuit);
+        saveButtonp.onClick.AddListener(OnSave);
+
+        // if (AvatarCreatorData.AvatarProperties.Id == "68cfbcc1621c04ac67af90cf")
+        // {
+        //     CreateNewAvatar();
+        //     return;
+        // }
+
         Setup();
     }
 
     public override void DeactivateState()
     {
-        saveButton.onClick.RemoveListener(OnSaveButton);
-        signupElement.OnContinueWithoutSignup.RemoveListener(Save);
-        signupElement.OnSendEmail.RemoveListener(OnSendEmail);
         categoryUICreator.OnCategorySelected -= OnCategorySelected;
+        newAvatarButton.onClick.RemoveListener(CreateNewAvatar);
+        discardButton.onClick.RemoveListener(DiscardAndQuit);
+        saveButtonp.onClick.RemoveListener(OnSave);
         Cleanup();
     }
 
     private async void Setup()
     {
         LoadingManager.EnableLoading();
+
+        // AuthManager.OnSignedIn += (userSession) =>
+        // {
+        //     PlayerPrefs.SetString("StoredSession", JsonUtility.ToJson(userSession));
+        //     PlayerPrefs.Save();
+        //     Debug.Log("User session stored successfully.");
+        // };
+
+        // AuthManager.OnSessionRefreshed += (userSession) =>
+        // {
+        //     PlayerPrefs.SetString("StoredSession", JsonUtility.ToJson(userSession));
+        //     PlayerPrefs.Save();
+        //     Debug.Log("User session refreshed and stored successfully.");
+        // };
+
+        // if (PlayerPrefs.HasKey("StoredSession"))
+        // {
+        //     Debug.Log("Restoring user session from PlayerPrefs.");
+        //     AuthManager.SetUser(JsonUtility.FromJson<UserSession>(PlayerPrefs.GetString("StoredSession")));
+        // }
+        // else
+        // {
+        //     Debug.Log("No stored session found. Logging in as anonymous.");
+        //     AuthManager.Logout();
+        //     await AuthManager.LoginAsAnonymous();
+        // }
+        
+        if (!AuthManager.IsSignedIn)
+        {
+            Debug.Log("User not signed in. Logging in as anonymous.");
+            await AuthManager.LoginAsAnonymous();
+            Debug.Log("User Session: " + JsonUtility.ToJson(AuthManager.UserSession));
+            profileManager.SaveSession(AuthManager.UserSession);
+        }
+        else
+        {
+            Debug.Log("User already signed in.");
+            Debug.Log("User Session: " + JsonUtility.ToJson(AuthManager.UserSession));
+        }
+
 
         avatarManager = new AvatarManager(
             inCreatorConfig,
@@ -160,6 +211,9 @@ public class AvatarCreatorSelection : State, IDisposable
     {
         var startTime = Time.time;
 
+        Debug.Log("Loading avatar...");
+        Debug.Log("Avatar ID: " + AvatarCreatorData.AvatarProperties.Id);
+
         GameObject avatar;
 
         if (string.IsNullOrEmpty(AvatarCreatorData.AvatarProperties.Id))
@@ -181,7 +235,8 @@ public class AvatarCreatorSelection : State, IDisposable
             }
             else
             {
-                avatar = await avatarManager.GetAvatar(id, AvatarCreatorData.AvatarProperties.isDraft);
+                AvatarCreatorData.AvatarProperties.Assets ??= GetDefaultAssets();
+                avatar = await avatarManager.GetAvatar(id, false);
             }
         }
 
@@ -231,7 +286,7 @@ public class AvatarCreatorSelection : State, IDisposable
         categoryUICreator.Setup();
         assetButtonCreator.SetSelectedAssets(AvatarCreatorData.AvatarProperties.Assets);
         assetButtonCreator.CreateClearButton(UpdateAvatar);
-        saveButton.gameObject.SetActive(true);
+        saveButtonp.gameObject.SetActive(true);
     }
 
     private async Task CreateAssetsByCategory(AssetType category)
@@ -263,43 +318,59 @@ public class AvatarCreatorSelection : State, IDisposable
         UpdateAvatar(id, category);
     }
 
-    private void OnSaveButton()
-    {
-        if (AuthManager.IsSignedIn)
-        {
-            Save();
-        }
-        else
-        {
-            signupElement.gameObject.SetActive(true);
-        }
-    }
 
     private void OnSendEmail(string email)
     {
-        Save();
+        OnSave();
     }
 
-    private async void Save()
+    private async void OnSave()
     {
-        AuthManager.StoreLastModifiedAvatar(null);
+        // AuthManager.StoreLastModifiedAvatar(null);
         var startTime = Time.time;
+        Debug.Log("Starting to save avatar...");
+        SDKLogger.Log(TAG, "Starting to save avatar...");
 
         LoadingManager.EnableLoading("Saving avatar...", LoadingManager.LoadingType.Popup);
 
         if (AvatarCreatorData.AvatarProperties.isDraft)
         {
             var avatarId = await TaskExtensions.HandleCancellation(avatarManager.Save());
+            // var avatarId = avatarManager.Save().Result;
             if (avatarId != null)
             {
                 AvatarCreatorData.AvatarProperties.Id = avatarId;
-                FinishAndCloseCreator();
+                VAuthManager.UpdateAvatarUrl(avatarId,
+                (success) =>
+                {
+                    if (success)
+                    {
+                        Debug.Log("Avatar URL updated successfully in VAuthManager.");
+                        SDKLogger.Log(TAG, "Avatar URL updated successfully in VAuthManager.");
+                    }
+                    else
+                    {
+                        Debug.LogError("Failed to update Avatar URL in VAuthManager.");
+                        SDKLogger.Log(TAG, "Failed to update Avatar URL in VAuthManager.");
+                    }
+
+                    LoadingManager.DisableLoading();
+                    VAuthManager.GotoDashboard(StateMachine);
+                });
+            }
+            else
+            {
+                LoadingManager.DisableLoading();
+                Debug.LogError("Failed to save avatar.");
+                SDKLogger.Log(TAG, "Failed to save avatar.");
             }
 
         }
         else
         {
-            FinishAndCloseCreator();
+            Debug.Log("No draft avatar to save.");
+            LoadingManager.DisableLoading();
+            VAuthManager.GotoDashboard(StateMachine);
         }
 
         SDKLogger.Log(TAG, $"Avatar saved in {Time.time - startTime:F2}s");
@@ -373,6 +444,16 @@ public class AvatarCreatorSelection : State, IDisposable
 
         avatarManager.OnError -= OnErrorCallback;
         avatarManager?.Dispose();
+    }
+
+    private void CreateNewAvatar()
+    {
+        StateMachine.SetState(StateType.SelfieSelection);
+    }
+
+    private void DiscardAndQuit()
+    {
+        VAuthManager.GotoDashboard(StateMachine);
     }
 }
 

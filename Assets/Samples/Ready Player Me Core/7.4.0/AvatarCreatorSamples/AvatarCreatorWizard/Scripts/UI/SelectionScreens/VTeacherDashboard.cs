@@ -1,5 +1,7 @@
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using ReadyPlayerMe.AvatarCreator;
+using ReadyPlayerMe.Core;
 
 public class VTeacherDashboard : State
 {
@@ -25,12 +27,14 @@ public class VTeacherDashboard : State
 
         UWBStateMachine.registerBridgeFunction("Logout", Logout);
         UWBStateMachine.registerBridgeFunction("StartLecture", StartLecture);
+        UWBStateMachine.registerBridgeFunction("EditAvatar", EditAvatar);
     }
 
     public override void DeactivateState()
     {
         UWBStateMachine.unregisterBridgeFunction("Logout");
         UWBStateMachine.unregisterBridgeFunction("StartLecture");
+        UWBStateMachine.unregisterBridgeFunction("EditAvatar");
         Debug.Log("VTeacherDashboard State Deactivated");
     }
 
@@ -53,5 +57,28 @@ public class VTeacherDashboard : State
         }
 
         NCNetworkManager.Instance.StartClient(VAuthManager.Instance.GetAuthData());
+    }
+
+    private void EditAvatar(JObject arg, string callbackId)
+    {
+        Debug.Log("EditAvatar called from web.");
+        arg.TryGetValue("avatarUrl", out JToken avatarUrlToken);
+        string avatarUrl = avatarUrlToken != null ? avatarUrlToken.ToString() : string.Empty;
+        arg.TryGetValue("gender", out JToken genderToken);
+        string gender = genderToken != null ? genderToken.ToString() : "Male";
+
+        AvatarCreatorData.AvatarProperties.Gender = gender == "Male" ? OutfitGender.Masculine : OutfitGender.Feminine;
+
+        if (avatarUrl == "68cfbcc1621c04ac67af90cf")
+        {
+            StateMachine.SetState(StateType.SelfieSelection);
+            return;
+        }
+
+        AvatarCreatorData.IsExistingAvatar = avatarUrl != string.Empty;
+        AvatarCreatorData.AvatarProperties.Id = avatarUrl;
+        Debug.Log("Avatar ID set to: " + avatarUrl);
+
+        StateMachine.SetState(StateType.Editor);
     }
 }
