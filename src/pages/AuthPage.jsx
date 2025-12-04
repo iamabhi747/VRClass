@@ -157,6 +157,19 @@ export default function AuthPage() {
   const typingTimeoutRef = useRef(null);
   const navigate = useNavigate();
 
+  const clearAllInputs = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setFullName('');
+    setRollNo('');
+    setDivision('');
+    setDepartment('');
+    setEmployeeId('');
+    setDesignation('');
+    setError(null);
+  };
+
   const handleTyping = () => {
     setIsTyping(true);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -479,10 +492,31 @@ export default function AuthPage() {
             )}
           </AnimatePresence>
 
-          <div className="mt-6 pt-6 border-t border-white/5 text-center">
-            <button onClick={() => { setIsLogin(!isLogin); setError(null); setFullName(''); setConfirmPassword(''); setRollNo(''); setDivision(''); setDepartment(''); setEmployeeId(''); setDesignation(''); }} className={`text-xs font-bold hover:underline ${current.text} transition-colors duration-300`}>
-                {isLogin ? 'Need an account?' : 'Have an account?'}
-             </button>
+          <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
+            <button
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError(null);
+                setFullName('');
+                setConfirmPassword('');
+                setRollNo('');
+                setDivision('');
+                setDepartment('');
+                setEmployeeId('');
+                setDesignation('');
+              }}
+              className={`text-xs font-bold hover:underline ${current.text} transition-colors duration-300`}
+            >
+              {isLogin ? 'Need an account?' : 'Have an account?'}
+            </button>
+
+            <button
+              onClick={clearAllInputs}
+              className="text-[11px] font-medium text-white/50 hover:text-white/80 hover:underline transition-colors"
+              aria-label="Clear all inputs"
+            >
+              Clear
+            </button>
           </div>
           {/* DEV ONLY: Simulate server error for testing form errors */}
           {import.meta?.env?.MODE === 'development' && (
