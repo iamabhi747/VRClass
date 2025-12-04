@@ -6,6 +6,9 @@ import jwt
 import os
 import hashlib
 import pdf2image
+import requests
+import aiohttp
+import asyncio
 
 api = Blueprint("api", __name__)
 
@@ -14,8 +17,10 @@ ALGORITHM = "HS256"
 SERVER_NAME = "VRClass S1"
 UPLOAD_FOLDER = 'uploads'
 RESOURCE_FOLDER = 'static/pdfresources'
+IMAGES_FOLDER = 'static/images'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(RESOURCE_FOLDER, exist_ok=True)
+os.makedirs(IMAGES_FOLDER, exist_ok=True)
 
 def create_jwt_token(data: dict, minutes_to_expire: int = 60 * 24 * 365) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=minutes_to_expire)
@@ -108,8 +113,29 @@ def register():
         "clientId": new_user.username
     }), 200
 
+async def fetch_and_save_image(id: str):
+    url = f"https://models.readyplayer.me/{id}.png?blendShapes[mouthSmile]=0.8&size=256&background=35,37,63"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            print(f"Fetching image from {url}, status: {resp.status}")
+            if resp.status == 200:
+                print(f"Successfully fetched image for id: {id}")
+                content = await resp.read()
+                filepath = os.path.join(IMAGES_FOLDER, f"{id}.png")
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, _write_file, filepath, content)
+                return filepath
+            else:
+                print(f"Failed to fetch image for id: {id}, status code: {resp.status}")
+    return None
+
+def _write_file(path: str, content: bytes):
+    with open(path, 'wb') as f:
+        f.write(content)
+
+
 @api.route('/profile', methods=['GET', 'POST'])
-def profile():
+async def profile():
     data = request.json
     authToken = data.get('authToken')
 
@@ -131,6 +157,9 @@ def profile():
         elif user and clientdata and request.method == 'POST':
             name = data.get('name', clientdata.name)
             avatarUrl = data.get('avatarUrl', clientdata.avatarUrl)
+
+            if data.get('avatarUrl', None) is not None:
+                await fetch_and_save_image(avatarUrl)
 
             # Optional gender update (validate 'M' or 'F')
             if 'gender' in data:
