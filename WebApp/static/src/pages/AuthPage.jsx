@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Mail, Lock, User, ArrowRight, GraduationCap, School } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, User, ArrowRight, GraduationCap, School, Hash, Briefcase } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { run, resolveCallback } from '../bridge';
 
@@ -31,13 +31,13 @@ const WarpStarfield = ({ role, isWarping, isTyping }) => {
 
     // Initialize Stars once
     if (starsRef.current.length === 0) {
-        for (let i = 0; i < starCount; i++) {
-            starsRef.current.push({
-                x: Math.random() * width - width / 2,
-                y: Math.random() * height - height / 2,
-                z: Math.random() * 1000
-            });
-        }
+      for (let i = 0; i < starCount; i++) {
+        starsRef.current.push({
+          x: Math.random() * width - width / 2,
+          y: Math.random() * height - height / 2,
+          z: Math.random() * 1000
+        });
+      }
     }
 
     const handleResize = () => {
@@ -138,17 +138,37 @@ const InputField = ({ icon: Icon, type, placeholder, onTyping, value, onChange }
 );
 
 export default function AuthPage() {
+  console.log('Rendering AuthPage');
   const [role, setRole] = useState('student');
   const [isLogin, setIsLogin] = useState(true);
   const [isWarping, setIsWarping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [isUnity, _] = useState(window.isUnity || false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [rollNo, setRollNo] = useState('');
+  const [division, setDivision] = useState('');
+  const [department, setDepartment] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
+  const [designation, setDesignation] = useState('');
+  const [isUnity, _] = useState(window.isUnity || true);
+  const [error, setError] = useState(null); // { status, message }
   const typingTimeoutRef = useRef(null);
   const navigate = useNavigate();
+
+  const clearAllInputs = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setFullName('');
+    setRollNo('');
+    setDivision('');
+    setDepartment('');
+    setEmployeeId('');
+    setDesignation('');
+    setError(null);
+  };
 
   const handleTyping = () => {
     setIsTyping(true);
@@ -163,22 +183,44 @@ export default function AuthPage() {
       // TODO: Validate inputs
       // TODO: set loading true
 
+      // Local validation for signup: confirm password
+      if (!isLogin && password !== confirmPassword) {
+        setError({ status: 'VAL', message: 'Passwords do not match' });
+        return;
+      }
+
       if (isUnity) {
-        run('Authenticate', { action, role, email, password },
+        // Build payload for auth
+        const payload = { action, role, email, password, name: fullName };
+        if (!isLogin) {
+          if (role === 'student') {
+            payload.rollNo = rollNo;
+            payload.division = division;
+            payload.department = department;
+          } else {
+            payload.employeeId = employeeId;
+            payload.designation = designation;
+            payload.department = department;
+          }
+        }
+
+        run('Authenticate', payload,
           (response) => {
             // TODO: set loading false
-
+            // Clear errors on success
+            setError(null);
             setIsWarping(true);
             setTimeout(() => {
-              run('AuthNextState', {}, (response) => {}, (error) => {});
+              run('AuthNextState', { "mode": role === 'teacher' ? 2 : 1 }, (response) => {}, (error) => {});
             }, 1000);
           },
           (error) => {
             // error.status => error code
             // error.message => error message
 
-            // TODO: Handle error (e.g., show message)
-            console.error(`Authentication failed: (${error.status}) ${error.message}`);
+            // Show popup with server error
+            setError({ status: error?.status ?? 'ERR', message: error?.message ?? 'Authentication failed' });
+            console.error(`Authentication failed: (${error?.status}) ${error?.message}`);
           }
         );
         return;
@@ -186,13 +228,20 @@ export default function AuthPage() {
 
       // TODO: API Call for Web
       // TODO: set loading false
-      setIsWarping(true);
+        setIsWarping(true);
       setTimeout(() => {
           setIsWarping(false);
           // Navigate to Dashboard
-          navigate('/dashboard', { state: { role: role } });
+          setError(null);
+          if (role === 'student') {
+            navigate('/studdashboard');
+          } else if (role === 'teacher') {
+            navigate('/teachdashboard');
+          }
       }, 2000);
   };
+
+  
 
   const theme = {
     student: { text: 'text-violet-400', bg: 'bg-violet-600', border: 'border-violet-500/30' },
@@ -200,10 +249,109 @@ export default function AuthPage() {
   };
   const current = theme[role];
 
+  // Auto-dismiss popup after a short duration when error is set
+  useEffect(() => {
+    if (!error) return;
+    const id = setTimeout(() => setError(null), 6000);
+    return () => clearTimeout(id);
+  }, [error]);
+
+  const ErrorPopup = ({ error, onClose, role }) => {
+    const theme = {
+      student: { text: 'text-violet-400', bg: 'bg-violet-600/80', border: 'border-violet-500/30', rgb: '124,58,237' },
+      teacher: { text: 'text-teal-400', bg: 'bg-teal-600/80', border: 'border-teal-500/30', rgb: '20,184,166' }
+    };
+    const current = theme[role];
+    const glow = role === 'student' ? '124,58,237' : '20,184,166';
+
+    const overlayVars = {
+      initial: { opacity: 0 },
+      animate: { opacity: 1, transition: { duration: 0.18 } },
+      exit: { opacity: 0, transition: { duration: 0.14 } }
+    };
+
+    const cardVars = {
+      initial: { opacity: 0, y: 20, scale: 0.96 },
+      animate: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 420, damping: 28 } },
+      exit: { opacity: 0, y: 16, scale: 0.98, transition: { duration: 0.18 } }
+    };
+
+    return (
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            key="auth-error"
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={{ initial: {}, animate: {}, exit: {} }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-6 pointer-events-auto"
+            aria-live="assertive"
+          >
+            <motion.div
+              className="absolute inset-0"
+              onClick={onClose}
+              variants={overlayVars}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              style={{ background: 'rgba(0,0,0,0.58)', backdropFilter: 'blur(6px)' }}
+            />
+
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={cardVars}
+              className={`relative z-10 max-w-2xl w-full mx-auto rounded-3xl p-6 ${current.border} border bg-black/70 backdrop-blur-xl shadow-2xl`}
+              style={{ boxShadow: `0 12px 40px rgba(${glow}, 0.10)` }}
+            >
+              <div className="flex items-start gap-4 md:gap-6">
+                  <motion.div
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 540, damping: 26 }}
+                    className={`flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-lg ${current.bg} ${current.text}`}
+                    style={{ boxShadow: `0 8px 30px rgba(${glow}, 0.14) inset` }}
+                  >
+                    <svg className="w-8 h-8 md:w-9 md:h-9" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M12 9v4" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M12 17h.01" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M10.29 3.86L2 20.5h20L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="white" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </motion.div>
+
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="text-lg md:text-xl text-white font-bold">Authentication Error</div>
+                      <div className="text-xs text-white/60 mt-1">{error?.status ? `Code: ${error.status}` : ''}</div>
+                    </div>
+                    <button
+                      onClick={onClose}
+                      className="text-white/50 hover:text-white p-1 rounded-full transition-colors"
+                      aria-label="Close error"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="text-sm md:text-base text-white/70 mt-3 break-words">
+                    {error?.message ?? 'An unknown error occurred.'}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center relative font-sans overflow-hidden bg-black">
       
       {/* 1. BACKGROUND ENGINE */}
+      <ErrorPopup error={error} onClose={() => setError(null)} role={role} />
       <WarpStarfield role={role} isWarping={isWarping} isTyping={isTyping} />
       
       {isUnity ? null : (
@@ -215,7 +363,7 @@ export default function AuthPage() {
       {/* 2. GLASS LOGIN PANEL */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-        className={`relative z-10 w-full max-w-[400px] mx-4 transition-all duration-700 ${isWarping ? 'scale-95 opacity-0 blur-md' : 'opacity-100 scale-100'}`}
+        className={`relative z-10 w-full max-w-[460px] mx-4 transition-all duration-700 ${isWarping ? 'scale-95 opacity-0 blur-md' : 'opacity-100 scale-100'}`}
       >
         <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
           
@@ -261,10 +409,12 @@ export default function AuthPage() {
                 <InputField 
                   icon={Lock} 
                   type="password" 
-                  placeholder="Passcode" 
+                  placeholder="Password" 
+                  name="password"
                   value={password}
                   onChange={setPassword}
                   onTyping={handleTyping} 
+                  
                 />
                  
                  <button 
@@ -280,21 +430,13 @@ export default function AuthPage() {
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                 className="space-y-4"
               >
-                 <div className="grid grid-cols-2 gap-3">
+                 <div className="space-y-3">
                   <InputField 
                     icon={User} 
                     type="text" 
-                    placeholder="First Name" 
-                    value={firstName}
-                    onChange={setFirstName}
-                    onTyping={handleTyping} 
-                  />
-                  <InputField 
-                    icon={User} 
-                    type="text" 
-                    placeholder="Last Name" 
-                    value={lastName}
-                    onChange={setLastName}
+                    placeholder="Full Name" 
+                    value={fullName}
+                    onChange={setFullName}
                     onTyping={handleTyping} 
                   />
                  </div>
@@ -306,12 +448,37 @@ export default function AuthPage() {
                   onChange={setEmail}
                   onTyping={handleTyping} 
                 />
+                {/* Role-specific Signup Fields */}
+                {role === 'student' ? (
+                  <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-3 gap-3">
+                    <InputField icon={Hash} type="text" placeholder="Roll No." value={rollNo} onChange={setRollNo} onTyping={handleTyping} />
+                    <InputField icon={User} type="text" placeholder="Division" value={division} onChange={setDivision} onTyping={handleTyping} />
+                    <InputField icon={GraduationCap} type="text" placeholder="Department" value={department} onChange={setDepartment} onTyping={handleTyping} />
+                  </motion.div>
+                ) : (
+                  <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-3 gap-3">
+                    <InputField icon={Hash} type="text" placeholder="Employee ID" value={employeeId} onChange={setEmployeeId} onTyping={handleTyping} />
+                    <InputField icon={Briefcase} type="text" placeholder="Designation" value={designation} onChange={setDesignation} onTyping={handleTyping} />
+                    <InputField icon={School} type="text" placeholder="Department" value={department} onChange={setDepartment} onTyping={handleTyping} />
+                  </motion.div>
+                )}
                 <InputField 
                   icon={Lock} 
                   type="password" 
-                  placeholder="Create Passcode" 
+                  placeholder="Create Password" 
+                  name="password"
                   value={password}
                   onChange={setPassword}
+                  onTyping={handleTyping} 
+                  
+                />
+                <InputField 
+                  icon={Lock} 
+                  type="password" 
+                  placeholder="Confirm Password" 
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
                   onTyping={handleTyping} 
                 />
                  
@@ -325,11 +492,43 @@ export default function AuthPage() {
             )}
           </AnimatePresence>
 
-          <div className="mt-6 pt-6 border-t border-white/5 text-center">
-             <button onClick={() => setIsLogin(!isLogin)} className={`text-xs font-bold hover:underline ${current.text} transition-colors duration-300`}>
-                {isLogin ? 'Need an account?' : 'Have an account?'}
-             </button>
+          <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
+            <button
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError(null);
+                setFullName('');
+                setConfirmPassword('');
+                setRollNo('');
+                setDivision('');
+                setDepartment('');
+                setEmployeeId('');
+                setDesignation('');
+              }}
+              className={`text-xs font-bold hover:underline ${current.text} transition-colors duration-300`}
+            >
+              {isLogin ? 'Need an account?' : 'Have an account?'}
+            </button>
+
+            <button
+              onClick={clearAllInputs}
+              className="text-[11px] font-medium text-white/50 hover:text-white/80 hover:underline transition-colors"
+              aria-label="Clear all inputs"
+            >
+              Clear
+            </button>
           </div>
+          {/* DEV ONLY: Simulate server error for testing form errors */}
+          {import.meta?.env?.MODE === 'development' && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => setError({ status: 'DEV', message: 'Test popup: invalid credentials' })}
+                  className="mt-2 px-3 py-1 text-xs rounded-md bg-white/5 text-white/60 hover:bg-white/10"
+                >
+                  Simulate Error (Dev)
+                </button>
+              </div>
+          )}
         </div>
       </motion.div>
       
