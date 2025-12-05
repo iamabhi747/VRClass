@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Netcode;
 using ReadyPlayerMe.Core;
 using System.Threading.Tasks;
+using Unity.Services.Vivox;
 
 public class PlayerMovement : NetworkBehaviour
 {
@@ -312,6 +313,20 @@ public class PlayerMovement : NetworkBehaviour
             {
                 resourceGallery.ShowNextOrPreviousServerRpc(true);
             }
+
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                if (VivoxService.Instance.IsInputDeviceMuted)
+                {
+                    VivoxService.Instance.UnmuteInputDevice();
+                    Debug.Log("Microphone Unmuted");
+                }
+                else
+                {
+                    VivoxService.Instance.MuteInputDevice();
+                    Debug.Log("Microphone Muted");
+                }
+            }
         }
         else if (Mode == NCNetworkManager.MSTUDENT && is2dScreenActive)
         {
@@ -329,6 +344,20 @@ public class PlayerMovement : NetworkBehaviour
             {
                 is2dScreenActive = false;
                 personalResourceGallery.SetActive2DScreen(false);
+            }
+
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                if (VivoxService.Instance.IsInputDeviceMuted)
+                {
+                    VivoxService.Instance.UnmuteInputDevice();
+                    Debug.Log("Microphone Unmuted");
+                }
+                else
+                {
+                    VivoxService.Instance.MuteInputDevice();
+                    Debug.Log("Microphone Muted");
+                }
             }
         }
         else if (Mode == NCNetworkManager.MSTUDENT)
@@ -350,6 +379,20 @@ public class PlayerMovement : NetworkBehaviour
                 else
                 {
                     await objectLoader.SetActive3dObject(false);
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                if (VivoxService.Instance.IsInputDeviceMuted)
+                {
+                    VivoxService.Instance.UnmuteInputDevice();
+                    Debug.Log("Microphone Unmuted");
+                }
+                else
+                {
+                    VivoxService.Instance.MuteInputDevice();
+                    Debug.Log("Microphone Muted");
                 }
             }
         }
