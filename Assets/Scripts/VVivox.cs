@@ -4,7 +4,7 @@ using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Vivox;
 
-public class Vivox : MonoBehaviour
+public class VVivox : MonoBehaviour
 {
     private const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     // Start is called before the first frame update
@@ -12,7 +12,6 @@ public class Vivox : MonoBehaviour
     {
         InitializeAsync();
         // LoginToVivoxAsync();
-        JoinChannelAsync(); 
     }
 
     // Update is called once per frame

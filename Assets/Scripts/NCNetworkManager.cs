@@ -83,6 +83,7 @@ public class NCNetworkManager : MonoBehaviour
     [SerializeField] private GameObject studentDeskPrefab;
     [SerializeField] private GameObject teacherDeskPrefab;
     [SerializeField] private GameObject boardCanvas;
+    [SerializeField] private VVivox vivoxManager;
 
     void Awake()
     {
@@ -159,6 +160,8 @@ public class NCNetworkManager : MonoBehaviour
         mainCamera.SetActive(false);
 
         m_NetworkManager.StartClient();
+
+        vivoxManager.JoinChannelAsync();
     }
 
     private void StartServer()
