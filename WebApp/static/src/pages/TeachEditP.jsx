@@ -240,7 +240,7 @@ export default function EditProfile() {
 
               <div className="relative w-40 h-40 rounded-full border-4 border-black shadow-2xl overflow-hidden">
                 <img
-                  src={`http://localhost:8000/static/images/${profileData.avatarUrl}.png`}
+                  src={`http://localhost:8000/static/images/${formData.avatarUrl}.png`}
                   alt="Avatar"
                   className="w-full h-full object-cover bg-zinc-900"
                 />
