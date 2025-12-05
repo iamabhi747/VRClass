@@ -106,10 +106,15 @@ public class NCNetworkManager : MonoBehaviour
                 break;
             }
         }
+
+        #if UNITY_SERVER
+        StartServer();
+        #endif
     }
 
     void OnGUI()
     {
+        #if !UNITY_SERVER
         if (!m_NetworkManager.IsClient && !m_NetworkManager.IsServer && !isUIstarted)
         {
             // Rn generating dummy payload for connection approval
@@ -133,6 +138,7 @@ public class NCNetworkManager : MonoBehaviour
             GUILayout.EndArea();
             return;
         }
+        #endif
     }
 
     public ClientData? GetClientData(ulong clientId)

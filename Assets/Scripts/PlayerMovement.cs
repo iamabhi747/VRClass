@@ -125,6 +125,7 @@ public class PlayerMovement : NetworkBehaviour
     private void Update()
     {
         if (!isSpawned) return;
+        #if !UNITY_SERVER
 
         if (IsOwner)
         {
@@ -156,6 +157,7 @@ public class PlayerMovement : NetworkBehaviour
         {
             SyncPlayerClient();
         }
+        #endif
     }
 
     private void ExecuteAnimatorIK()
@@ -166,6 +168,7 @@ public class PlayerMovement : NetworkBehaviour
 
     private void SetMouseInputEnabled(bool enabled)
     {
+        #if !UNITY_SERVER
         if (enabled && !mouseInputEnabled)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -176,6 +179,7 @@ public class PlayerMovement : NetworkBehaviour
             Cursor.lockState = CursorLockMode.None;
             mouseInputEnabled = false;
         }
+        #endif
     }
 
     private void Move()
