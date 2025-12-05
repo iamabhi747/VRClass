@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using ReadyPlayerMe.Core;
+using System.Threading.Tasks;
 
 public class PlayerMovement : NetworkBehaviour
 {
@@ -21,6 +22,7 @@ public class PlayerMovement : NetworkBehaviour
     private bool mouseInputEnabled = false;
     private bool isSpawned = false;
     private bool is2dScreenActive = false;
+    private bool is3dObjectActive = false;
     private AvatarObjectLoader avatarObjectLoader;
 
     [SerializeField] private bool isGrounded;
@@ -48,6 +50,7 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] private bool showCrosshair = false;
     private ResourceGallery resourceGallery;
     private PersonalResourceGallery personalResourceGallery;
+    private ObjectLoader objectLoader;
 
     // Methods
 
@@ -62,6 +65,12 @@ public class PlayerMovement : NetworkBehaviour
 
         resourceGallery = FindObjectOfType<ResourceGallery>();
         personalResourceGallery = FindObjectOfType<PersonalResourceGallery>();
+
+        GameObject objectLoaderObj = GameObject.Find("3dObject");
+        if (objectLoaderObj != null)
+        objectLoader = objectLoaderObj.GetComponent<ObjectLoader>();
+        else
+        Debug.LogWarning("3dObject GameObject not found in scene.");
     }
 
     private void SpawnRPM()
@@ -241,6 +250,7 @@ public class PlayerMovement : NetworkBehaviour
     private void Rotate()
     {
         if (!mouseInputEnabled) return;
+        if (Input.GetMouseButton(1)) return;
 
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
@@ -257,7 +267,7 @@ public class PlayerMovement : NetworkBehaviour
         lookAtPosition = headBone.position + direction * 15f;
     }
 
-    private void Interaction()
+    private async Task Interaction()
     {
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         RaycastHit[] hits = Physics.RaycastAll(ray, 2.1f);
@@ -329,6 +339,19 @@ public class PlayerMovement : NetworkBehaviour
                 personalResourceGallery.Refresh();
                 personalResourceGallery.SetActive2DScreen(true);
             }
+
+            if (Input.GetKeyDown(KeyCode.P) && Input.GetKey(KeyCode.LeftControl))
+            {
+                is3dObjectActive = !is3dObjectActive;
+                if (is3dObjectActive)
+                {
+                    await objectLoader.SetActive3dObject(true);
+                }
+                else
+                {
+                    await objectLoader.SetActive3dObject(false);
+                }
+            }
         }
     }
 
@@ -359,7 +382,7 @@ public class PlayerMovement : NetworkBehaviour
 
     // Network synchronization Methods
 
-    public override void OnNetworkSpawn()
+    public override async void OnNetworkSpawn()
     {
         if (IsServer)
         {
@@ -377,7 +400,7 @@ public class PlayerMovement : NetworkBehaviour
         AudioListener audioListener = playerCamera.GetComponent<AudioListener>();
         if (audioListener != null) audioListener.enabled = IsOwner;
 
-        if (IsOwner)
+        if (IsOwner && nClientData.Value.mode == NCNetworkManager.MSTUDENT)
         {
             SetMouseInputEnabled(true);
 
@@ -401,6 +424,28 @@ public class PlayerMovement : NetworkBehaviour
             {
                 Debug.LogWarning("PersonalResourceGallery not found in scene.");
             }
+
+            if (objectLoader != null)
+            {
+                objectLoader.Delete();
+                await objectLoader.SetActive3dObject(false);
+                objectLoader.SetPositionAndRotation(deskPosition + new Vector3(0.0f, 0.192f, 0.0f), Quaternion.Euler(0, 0, 0));
+                is3dObjectActive = false;
+                Debug.Log("ObjectLoader positioned for student.");
+
+                objectLoader.SetInitialPositionAndBoxSize(deskPosition - new Vector3(0.3f, -0.1f, 0.1f), new Vector3(0.6f, 0.6f, 0.6f));
+
+                // await objectLoader.LoadFromUrl("http://localhost:8000/static/images/Duck.glb", deskPosition - new Vector3(0.3f, -0.1f, 0.1f), new Vector3(0.6f, 0.6f, 0.6f), true);
+                // objectLoader.SetActive3dObject(true);
+            }
+            else
+            {
+                Debug.LogWarning("ObjectLoader not found in scene.");
+            }
+        }
+        else if (IsOwner && nClientData.Value.mode == NCNetworkManager.MTEACHER)
+        {
+            SetMouseInputEnabled(true);
         }
 
         Mode = nClientData.Value.mode;

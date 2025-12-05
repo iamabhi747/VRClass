@@ -12,6 +12,7 @@ public class ResourceGallery : NetworkBehaviour
     [SerializeField] private RawImage displayImage;
 
     private string[] imageUrls;
+    private string objUrl;
 
     private int currentIndex = 0;
     private bool isDownloading = false;
@@ -162,7 +163,11 @@ public class ResourceGallery : NetworkBehaviour
     {
         return imageUrls;
     }
-    
+
+    public string GetObjUrl()
+    {
+        return objUrl;
+    }
     // Payload type for sending arrays of strings over Netcode RPCs
     public struct StringArrayPayload : INetworkSerializable
     {
@@ -254,6 +259,27 @@ public class ResourceGallery : NetworkBehaviour
         else
         {
             ShowPreviousImage();
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void UpdateObjUrlServerRpc(string url, ServerRpcParams rpcParams = default)
+    {
+        Debug.Log("UpdateObjUrlServerRpc called");
+        UpdateObjUrlClientRpc(url);
+    }
+
+    [ClientRpc]
+    private void UpdateObjUrlClientRpc(string url, ClientRpcParams rpcParams = default)
+    {
+        Debug.Log("UpdateObjUrlClientRpc called");
+        objUrl = url;
+
+        var loaders = FindObjectsOfType<ObjectLoader>(true);
+        foreach (var loader in loaders)
+        {
+            Debug.Log($"Found ObjectLoader on: {loader.gameObject.name}");
+            loader.UpdateObjUrl(url);
         }
     }
 }

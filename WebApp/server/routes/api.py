@@ -18,9 +18,11 @@ SERVER_NAME = "VRClass S1"
 UPLOAD_FOLDER = 'uploads'
 RESOURCE_FOLDER = 'static/pdfresources'
 IMAGES_FOLDER = 'static/images'
+OBJ_FOLDER = 'static/3dobjects'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(RESOURCE_FOLDER, exist_ok=True)
 os.makedirs(IMAGES_FOLDER, exist_ok=True)
+os.makedirs(OBJ_FOLDER, exist_ok=True)
 
 def create_jwt_token(data: dict, minutes_to_expire: int = 60 * 24 * 365) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=minutes_to_expire)
@@ -636,7 +638,6 @@ def upload_file():
     
     return jsonify({"error": "File upload failed"}), 500
 
-
 @api.route('/processPDF', methods=['POST'])
 def process_pdf():
     data = request.json
@@ -660,4 +661,23 @@ def process_pdf():
         "message": "PDF processed successfully",
         "imageCount": len(images),
         "resourcePath": outpath
+    }), 200
+
+@api.route('/process3DObject', methods=['POST'])
+def process_3d_object():
+    data = request.json
+    filename = data.get('filehash')
+    if not filename:
+        return jsonify({"error": "filename required"}), 400
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(filepath):
+        return jsonify({"error": "File not found"}), 404
+
+    dest_path = os.path.join(OBJ_FOLDER, filename)
+    os.rename(filepath, dest_path)
+
+    return jsonify({
+        "success": True,
+        "message": "3D object processed successfully",
+        "resourcePath": os.path.relpath(dest_path)
     }), 200

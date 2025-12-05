@@ -249,6 +249,23 @@ public class APIGateway : MonoBehaviour
         });
     }
 
+    public static void Process3DObject(string filehash, Action<PDFProcessResponse> OnResult)
+    {
+        if (Instance == null)
+        {
+            Debug.LogError("APIGateway instance is not initialized.");
+            return;
+        }
+
+        string url = Instance.host + "/process3DObject";
+        Instance.POSTJsonRequest<PDFProcessRequest, PDFProcessResponse>(url, new PDFProcessRequest { filehash = filehash },
+        OnResult,
+        (errorMessage) =>
+        {
+            OnResult?.Invoke(new PDFProcessResponse { success = false, message = errorMessage });
+        });
+    }
+
     public class AvatarUpdateRequest
     {
         public string authToken;
