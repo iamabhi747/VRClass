@@ -7,9 +7,10 @@ using Unity.Netcode;
 using Unity.Collections;
 using System;
 
-public class ResourceGallery : NetworkBehaviour
+public class PersonalResourceGallery : MonoBehaviour
 {
     [SerializeField] private RawImage displayImage;
+    [SerializeField] private ResourceGallery sharedGallery;
 
     private string[] imageUrls;
 
@@ -20,6 +21,11 @@ public class ResourceGallery : NetworkBehaviour
 
     void Start()
     {
+        if (sharedGallery != null)
+        {
+            imageUrls = sharedGallery.GetImageUrls();
+        }
+
         if (imageUrls != null && imageUrls.Length > 0)
         {
             StartCoroutine(DownloadAndSetImage(imageUrls[currentIndex]));
@@ -27,6 +33,25 @@ public class ResourceGallery : NetworkBehaviour
         else
         {
             if (displayImage != null) displayImage.enabled = false;
+        }
+    }
+
+    public void Refresh()
+    {
+        if (sharedGallery != null)
+        {
+            currentIndex = 0;
+            StopAllCoroutines();
+            isDownloading = false;
+            ClearCache();
+            displayImage.enabled = false;
+            
+            imageUrls = sharedGallery.GetImageUrls();
+
+            if (imageUrls != null && imageUrls.Length > 0)
+            {
+                StartCoroutine(DownloadAndSetImage(imageUrls[currentIndex]));
+            }
         }
     }
 
@@ -93,14 +118,13 @@ public class ResourceGallery : NetworkBehaviour
         displayImage.enabled = false;
     }
 
-    public override void OnDestroy()
+    public void OnDestroy()
     {
         foreach (var texture in textureCache.Values)
         {
             if (texture != null) Destroy(texture);
         }
         textureCache.Clear();
-        base.OnDestroy();
     }
 
     IEnumerator DownloadAndSetImage(string url)
@@ -158,102 +182,14 @@ public class ResourceGallery : NetworkBehaviour
         displayImage.uvRect = new Rect(1, 0, -1, 1); // Flip horizontally
     }
 
-    public string[] GetImageUrls()
+    public void SetActive2DScreen(bool isActive)
     {
-        return imageUrls;
-    }
-    
-    // Payload type for sending arrays of strings over Netcode RPCs
-    public struct StringArrayPayload : INetworkSerializable
-    {
-        public List<FixedString128Bytes> Items;
-
-        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-        {
-            if (serializer.IsWriter)
-            {
-                int count = Items != null ? Items.Count : 0;
-                serializer.SerializeValue(ref count);
-                for (int i = 0; i < count; i++)
-                {
-                    var item = Items[i];
-                    serializer.SerializeValue(ref item);
-                }
-            }
-            else
-            {
-                int count = 0;
-                serializer.SerializeValue(ref count);
-                if (Items == null) Items = new List<FixedString128Bytes>(count);
-                else Items.Clear();
-                for (int i = 0; i < count; i++)
-                {
-                    FixedString128Bytes item = default;
-                    serializer.SerializeValue(ref item);
-                    Items.Add(item);
-                }
-            }
-        }
-
-        public static StringArrayPayload FromStrings(string[] arr)
-        {
-            var payload = new StringArrayPayload { Items = new List<FixedString128Bytes>(arr?.Length ?? 0) };
-            if (arr != null)
-            {
-                for (int i = 0; i < arr.Length; i++)
-                {
-                    // Truncate if exceeds 128 bytes
-                    var fs = new FixedString128Bytes(arr[i] ?? string.Empty);
-                    payload.Items.Add(fs);
-                }
-            }
-            return payload;
-        }
-
-        public string[] ToStrings()
-        {
-            if (Items == null || Items.Count == 0) return Array.Empty<string>();
-            var result = new string[Items.Count];
-            for (int i = 0; i < Items.Count; i++)
-            {
-                result[i] = Items[i].ToString();
-            }
-            return result;
-        }
+        gameObject.transform.parent.gameObject.SetActive(isActive);
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void UpdateGalleryServerRpc(StringArrayPayload payload, ServerRpcParams rpcParams = default)
+    public void SetPositionAndRotation2DScreen(Vector3 position, Quaternion rotation)
     {
-        Debug.Log("UpdateGalleryServerRpc called");
-        UpdateGalleryClientRpc(payload);
-    }
-
-    [ClientRpc]
-    private void UpdateGalleryClientRpc(StringArrayPayload payload, ClientRpcParams rpcParams = default)
-    {
-        Debug.Log("UpdateGalleryClientRpc called");
-        UpdateGallery(payload.ToStrings());
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    public void ShowNextOrPreviousServerRpc(bool next, ServerRpcParams rpcParams = default)
-    {
-        Debug.Log("ShowNextOrPreviousServerRpc called");
-        ShowNextOrPreviousClientRpc(next);
-    }
-
-    [ClientRpc]
-    private void ShowNextOrPreviousClientRpc(bool next, ClientRpcParams rpcParams = default)
-    {
-        Debug.Log("ShowNextOrPreviousClientRpc called");
-        if (next)
-        {
-            ShowNextImage();
-        }
-        else
-        {
-            ShowPreviousImage();
-        }
+        gameObject.transform.parent.position = position;
+        gameObject.transform.parent.rotation = rotation;
     }
 }

@@ -20,6 +20,7 @@ public class PlayerMovement : NetworkBehaviour
     private Vector3 velocity;
     private bool mouseInputEnabled = false;
     private bool isSpawned = false;
+    private bool is2dScreenActive = false;
     private AvatarObjectLoader avatarObjectLoader;
 
     [SerializeField] private bool isGrounded;
@@ -46,6 +47,7 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] private RuntimeAnimatorController animatorController;
     [SerializeField] private bool showCrosshair = false;
     private ResourceGallery resourceGallery;
+    private PersonalResourceGallery personalResourceGallery;
 
     // Methods
 
@@ -59,6 +61,7 @@ public class PlayerMovement : NetworkBehaviour
         playerCamera = GetComponentInChildren<Camera>();
 
         resourceGallery = FindObjectOfType<ResourceGallery>();
+        personalResourceGallery = FindObjectOfType<PersonalResourceGallery>();
     }
 
     private void SpawnRPM()
@@ -300,6 +303,33 @@ public class PlayerMovement : NetworkBehaviour
                 resourceGallery.ShowNextOrPreviousServerRpc(true);
             }
         }
+        else if (Mode == NCNetworkManager.MSTUDENT && is2dScreenActive)
+        {
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                resourceGallery.ShowNextOrPreviousServerRpc(false);
+            }
+
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                resourceGallery.ShowNextOrPreviousServerRpc(true);
+            }
+
+            if (Input.GetKeyDown(KeyCode.O) && Input.GetKey(KeyCode.LeftControl))
+            {
+                is2dScreenActive = false;
+                personalResourceGallery.SetActive2DScreen(false);
+            }
+        }
+        else if (Mode == NCNetworkManager.MSTUDENT)
+        {
+            if (Input.GetKeyDown(KeyCode.O) && Input.GetKey(KeyCode.LeftControl))
+            {
+                is2dScreenActive = true;
+                personalResourceGallery.Refresh();
+                personalResourceGallery.SetActive2DScreen(true);
+            }
+        }
     }
 
     private void OnGUI()
@@ -350,6 +380,27 @@ public class PlayerMovement : NetworkBehaviour
         if (IsOwner)
         {
             SetMouseInputEnabled(true);
+
+            var studentSpawnPositionMarkersObj = GameObject.Find("StudentSpawnPositionMarkers");
+            if (studentSpawnPositionMarkersObj == null)
+            {
+                Debug.LogWarning("StudentSpawnPositionMarkers object not found in scene.");
+                return;
+            }
+
+            Vector3 deskPosition = studentSpawnPositionMarkersObj.transform.GetChild(nClientData.Value.positionIndex).transform.GetChild(1).position;
+
+            if (personalResourceGallery != null)
+            {
+                personalResourceGallery.SetActive2DScreen(false);
+                personalResourceGallery.SetPositionAndRotation2DScreen(deskPosition + Vector3.up * 0.192f, Quaternion.Euler(30, 0, 0));
+                is2dScreenActive = false;
+                Debug.Log("PersonalResourceGallery positioned for student.");
+            }
+            else
+            {
+                Debug.LogWarning("PersonalResourceGallery not found in scene.");
+            }
         }
 
         Mode = nClientData.Value.mode;
