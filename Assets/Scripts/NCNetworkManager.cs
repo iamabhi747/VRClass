@@ -82,6 +82,7 @@ public class NCNetworkManager : MonoBehaviour
     [SerializeField] private GameObject mainCamera;
     [SerializeField] private GameObject studentDeskPrefab;
     [SerializeField] private GameObject teacherDeskPrefab;
+    [SerializeField] private GameObject boardCanvas;
 
     void Awake()
     {
@@ -156,7 +157,7 @@ public class NCNetworkManager : MonoBehaviour
         classroomPrefab.SetActive(true);
         uiPrefab.SetActive(false);
         mainCamera.SetActive(false);
-        
+
         m_NetworkManager.StartClient();
     }
 
@@ -168,6 +169,9 @@ public class NCNetworkManager : MonoBehaviour
         m_NetworkManager.ConnectionApprovalCallback += ServerApprovalCheck;
         m_NetworkManager.OnClientConnectedCallback += OnClientConnected;
         m_NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
+
+        classroomPrefab.SetActive(true);
+        
         m_NetworkManager.StartServer();
 
         mainCamera.SetActive(false);

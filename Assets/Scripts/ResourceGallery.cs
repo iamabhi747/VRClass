@@ -3,8 +3,11 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
+using Unity.Collections;
+using System;
 
-public class ResourceGallery : MonoBehaviour
+public class ResourceGallery : NetworkBehaviour
 {
     [SerializeField] private RawImage displayImage;
 
@@ -27,18 +30,6 @@ public class ResourceGallery : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            ShowNextImage();
-        }
-
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            ShowPreviousImage();
-        }
-    }
 
     public void ShowNextImage()
     {
@@ -102,13 +93,14 @@ public class ResourceGallery : MonoBehaviour
         displayImage.enabled = false;
     }
 
-    private void OnDestroy()
+    public override void OnDestroy()
     {
         foreach (var texture in textureCache.Values)
         {
             if (texture != null) Destroy(texture);
         }
         textureCache.Clear();
+        base.OnDestroy();
     }
 
     IEnumerator DownloadAndSetImage(string url)
@@ -164,5 +156,99 @@ public class ResourceGallery : MonoBehaviour
         // fitter.aspectRatio = (float)texture.width / texture.height;
 
         displayImage.uvRect = new Rect(1, 0, -1, 1); // Flip horizontally
+    }
+
+    // Payload type for sending arrays of strings over Netcode RPCs
+    public struct StringArrayPayload : INetworkSerializable
+    {
+        public List<FixedString128Bytes> Items;
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            if (serializer.IsWriter)
+            {
+                int count = Items != null ? Items.Count : 0;
+                serializer.SerializeValue(ref count);
+                for (int i = 0; i < count; i++)
+                {
+                    var item = Items[i];
+                    serializer.SerializeValue(ref item);
+                }
+            }
+            else
+            {
+                int count = 0;
+                serializer.SerializeValue(ref count);
+                if (Items == null) Items = new List<FixedString128Bytes>(count);
+                else Items.Clear();
+                for (int i = 0; i < count; i++)
+                {
+                    FixedString128Bytes item = default;
+                    serializer.SerializeValue(ref item);
+                    Items.Add(item);
+                }
+            }
+        }
+
+        public static StringArrayPayload FromStrings(string[] arr)
+        {
+            var payload = new StringArrayPayload { Items = new List<FixedString128Bytes>(arr?.Length ?? 0) };
+            if (arr != null)
+            {
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    // Truncate if exceeds 128 bytes
+                    var fs = new FixedString128Bytes(arr[i] ?? string.Empty);
+                    payload.Items.Add(fs);
+                }
+            }
+            return payload;
+        }
+
+        public string[] ToStrings()
+        {
+            if (Items == null || Items.Count == 0) return Array.Empty<string>();
+            var result = new string[Items.Count];
+            for (int i = 0; i < Items.Count; i++)
+            {
+                result[i] = Items[i].ToString();
+            }
+            return result;
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void UpdateGalleryServerRpc(StringArrayPayload payload, ServerRpcParams rpcParams = default)
+    {
+        Debug.Log("UpdateGalleryServerRpc called");
+        UpdateGalleryClientRpc(payload);
+    }
+
+    [ClientRpc]
+    private void UpdateGalleryClientRpc(StringArrayPayload payload, ClientRpcParams rpcParams = default)
+    {
+        Debug.Log("UpdateGalleryClientRpc called");
+        UpdateGallery(payload.ToStrings());
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ShowNextOrPreviousServerRpc(bool next, ServerRpcParams rpcParams = default)
+    {
+        Debug.Log("ShowNextOrPreviousServerRpc called");
+        ShowNextOrPreviousClientRpc(next);
+    }
+
+    [ClientRpc]
+    private void ShowNextOrPreviousClientRpc(bool next, ClientRpcParams rpcParams = default)
+    {
+        Debug.Log("ShowNextOrPreviousClientRpc called");
+        if (next)
+        {
+            ShowNextImage();
+        }
+        else
+        {
+            ShowPreviousImage();
+        }
     }
 }

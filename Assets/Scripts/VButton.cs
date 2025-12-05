@@ -30,7 +30,7 @@ public class VButton : MonoBehaviour
                             ResourceGallery resourceGallery = FindObjectOfType<ResourceGallery>();
                             if (resourceGallery != null)
                             {
-                                resourceGallery.UpdateGallery(imageUrls);
+                                resourceGallery.UpdateGalleryServerRpc(ResourceGallery.StringArrayPayload.FromStrings(imageUrls));
                             }
                         }
                         else

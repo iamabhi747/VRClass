@@ -45,6 +45,7 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] private GameObject previewAvatar;
     [SerializeField] private RuntimeAnimatorController animatorController;
     [SerializeField] private bool showCrosshair = false;
+    private ResourceGallery resourceGallery;
 
     // Methods
 
@@ -56,6 +57,8 @@ public class PlayerMovement : NetworkBehaviour
 
         characterController = GetComponent<CharacterController>();
         playerCamera = GetComponentInChildren<Camera>();
+
+        resourceGallery = FindObjectOfType<ResourceGallery>();
     }
 
     private void SpawnRPM()
@@ -283,6 +286,20 @@ public class PlayerMovement : NetworkBehaviour
             }
         }
         showCrosshair = _showCrosshair;
+
+
+        if (Mode == NCNetworkManager.MTEACHER)
+        {
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                resourceGallery.ShowNextOrPreviousServerRpc(false);
+            }
+
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                resourceGallery.ShowNextOrPreviousServerRpc(true);
+            }
+        }
     }
 
     private void OnGUI()
