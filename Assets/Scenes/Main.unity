@@ -530,7 +530,7 @@ MonoBehaviour:
   m_MaxConnectAttempts: 60
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
-    Address: 127.0.0.1
+    Address: 34.100.151.53
     Port: 7777
     ServerListenAddress: 0.0.0.0
   DebugSimulator:
@@ -1301,7 +1301,7 @@ Transform:
   m_GameObject: {fileID: 626105022}
   serializedVersion: 2
   m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: 1000, y: 0.192, z: 0}
+  m_LocalPosition: {x: 1000, y: 0.204, z: 0}
   m_LocalScale: {x: 1.2663347, y: 0.69221467, z: 0.5245823}
   m_ConstrainProportionsScale: 0
   m_Children:
