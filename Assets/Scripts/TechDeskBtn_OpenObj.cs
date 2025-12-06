@@ -24,7 +24,12 @@ class TechDeskBtn_OpenObj : VButton
                             ResourceGallery resourceGallery = FindObjectOfType<ResourceGallery>();
                             if (resourceGallery != null)
                             {
+                                Debug.Log("ResourceGallery found in the scene.");
                                 resourceGallery.UpdateObjUrlServerRpc(objUrl);
+                            }
+                            else
+                            {
+                                Debug.LogError("ResourceGallery not found in the scene.");
                             }
                         }
                         else
