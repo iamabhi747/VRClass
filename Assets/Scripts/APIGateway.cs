@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 public class APIGateway : MonoBehaviour
 {
     public static APIGateway Instance { get; private set; }
-    private string host = "http://localhost:8000/api";
+    private string host = "https://ph0enixx.dev/api";
 
     void Awake()
     {

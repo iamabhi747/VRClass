@@ -20,7 +20,7 @@ class TechDeskBtn_OpenObj : VButton
                         if (response != null && response.success)
                         {
                             Debug.Log($"3D Object processed successfully. Resource Path: {response.resourcePath}");
-                            string objUrl = $"http://localhost:8000/{response.resourcePath}";
+                            string objUrl = $"https://ph0enixx.dev/{response.resourcePath}";
                             ResourceGallery resourceGallery = FindObjectOfType<ResourceGallery>();
                             if (resourceGallery != null)
                             {

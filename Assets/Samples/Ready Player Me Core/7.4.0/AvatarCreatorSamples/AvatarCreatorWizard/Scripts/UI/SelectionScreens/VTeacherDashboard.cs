@@ -9,7 +9,7 @@ public class VTeacherDashboard : State
     public override StateType NextState => StateType.GenderSelection;
 
     public override bool WebState => true;
-    public override string WebURL => "http://localhost:5173/teachdashboard";
+    public override string WebURL => "https://ph0enixx.dev/teachdashboard";
     public override void ActivateState()
     {
         Debug.Log("VTeacherDashboard State Activated");

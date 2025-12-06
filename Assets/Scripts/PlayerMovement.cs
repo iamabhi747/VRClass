@@ -482,7 +482,7 @@ public class PlayerMovement : NetworkBehaviour
 
                 objectLoader.SetInitialPositionAndBoxSize(deskPosition - new Vector3(0.3f, -0.1f, 0.1f), new Vector3(0.6f, 0.6f, 0.6f));
 
-                // await objectLoader.LoadFromUrl("http://localhost:8000/static/images/Duck.glb", deskPosition - new Vector3(0.3f, -0.1f, 0.1f), new Vector3(0.6f, 0.6f, 0.6f), true);
+                // await objectLoader.LoadFromUrl("https://ph0enixx.dev/static/images/Duck.glb", deskPosition - new Vector3(0.3f, -0.1f, 0.1f), new Vector3(0.6f, 0.6f, 0.6f), true);
                 // objectLoader.SetActive3dObject(true);
             }
             else

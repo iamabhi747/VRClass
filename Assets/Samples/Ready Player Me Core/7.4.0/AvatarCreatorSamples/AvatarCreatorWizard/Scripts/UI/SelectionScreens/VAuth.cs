@@ -8,7 +8,7 @@ public class VAuth : State
     public override StateType NextState => StateType.VStudentDashboard;
 
     public override bool WebState => true;
-    public override string WebURL => "http://localhost:5173/auth";
+    public override string WebURL => "https://ph0enixx.dev/auth";
 
     public override void ActivateState()
     {

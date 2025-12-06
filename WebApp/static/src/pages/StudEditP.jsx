@@ -96,7 +96,7 @@ export default function StudentEditProfile() {
    const navigate = useNavigate();
    const location = useLocation();
    const authData = location.state?.authData || window.authData || null;
-   const API_BASE = "http://localhost:8000/api";
+   const API_BASE = "https://ph0enixx.dev/api";
   
    // Student Data from API
    const [formData, setFormData] = useState({
@@ -245,7 +245,7 @@ export default function StudentEditProfile() {
                  
                  <div className="relative w-40 h-40 rounded-full border-4 border-black shadow-2xl overflow-hidden">
                               <img 
-                                 src={`http://localhost:8000/static/images/${formData.avatarUrl}.png`} 
+                                 src={`https://ph0enixx.dev/static/images/${formData.avatarUrl}.png`} 
                                  alt="Student Avatar" 
                                  className="w-full h-full object-cover bg-zinc-900"
                               />

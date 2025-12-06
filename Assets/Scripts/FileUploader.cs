@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 public class FileUploader : MonoBehaviour
 {
-    private string uploadUrl = "http://localhost:8000/api/upload";
+    private string uploadUrl = "https://ph0enixx.dev/api/upload";
 
     public void OnUploadButtonClicked(ExtensionFilter[] extensions = null, Action<string> onComplete = null)
     {

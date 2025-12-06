@@ -23,7 +23,7 @@ class TechDeskBtn_OpenFile : VButton
                             string[] imageUrls = new string[response.imageCount];
                             for (int i = 0; i < response.imageCount; i++)
                             {
-                                imageUrls[i] = $"http://localhost:8000/{response.resourcePath}/{i+1}.png";
+                                imageUrls[i] = $"https://ph0enixx.dev/{response.resourcePath}/{i+1}.png";
                             }
                             ResourceGallery resourceGallery = FindObjectOfType<ResourceGallery>();
                             if (resourceGallery != null)
