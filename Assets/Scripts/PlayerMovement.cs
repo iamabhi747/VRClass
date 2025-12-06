@@ -369,8 +369,8 @@ public class PlayerMovement : NetworkBehaviour
             if (Input.GetKeyDown(KeyCode.O))
             {
                 is2dScreenActive = true;
-                personalResourceGallery.Refresh();
                 personalResourceGallery.SetActive2DScreen(true);
+                personalResourceGallery.Refresh();
             }
 
             if (Input.GetKeyDown(KeyCode.P))
