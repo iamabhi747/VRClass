@@ -38,6 +38,8 @@ public class PersonalResourceGallery : MonoBehaviour
 
     public void Refresh()
     {
+        Debug.Log("PersonalResourceGallery Refresh called");
+        Debug.Log($"Shared gallery is null: {sharedGallery == null}");
         if (sharedGallery != null)
         {
             currentIndex = 0;

@@ -336,15 +336,15 @@ public class PlayerMovement : NetworkBehaviour
         {
             if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
-                resourceGallery.ShowNextOrPreviousServerRpc(false);
+                personalResourceGallery.ShowPreviousImage();
             }
 
             if (Input.GetKeyDown(KeyCode.RightArrow))
             {
-                resourceGallery.ShowNextOrPreviousServerRpc(true);
+                personalResourceGallery.ShowNextImage();
             }
 
-            if (Input.GetKeyDown(KeyCode.O) && Input.GetKey(KeyCode.LeftControl))
+            if (Input.GetKeyDown(KeyCode.O))
             {
                 is2dScreenActive = false;
                 personalResourceGallery.SetActive2DScreen(false);
@@ -366,14 +366,14 @@ public class PlayerMovement : NetworkBehaviour
         }
         else if (Mode == NCNetworkManager.MSTUDENT)
         {
-            if (Input.GetKeyDown(KeyCode.O) && Input.GetKey(KeyCode.LeftControl))
+            if (Input.GetKeyDown(KeyCode.O))
             {
                 is2dScreenActive = true;
                 personalResourceGallery.Refresh();
                 personalResourceGallery.SetActive2DScreen(true);
             }
 
-            if (Input.GetKeyDown(KeyCode.P) && Input.GetKey(KeyCode.LeftControl))
+            if (Input.GetKeyDown(KeyCode.P))
             {
                 is3dObjectActive = !is3dObjectActive;
                 if (is3dObjectActive)
