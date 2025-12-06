@@ -351,7 +351,9 @@ public class NCNetworkManager : MonoBehaviour
         Debug.Log($"Client disconnected: {clientId}");
         if (m_NetworkManager.IsServer && m_approvedClients.ContainsKey(clientId))
         {
+            studentSpawnPositionMarkers[m_approvedClients[clientId].positionIndex] = false;
             m_approvedClients.Remove(clientId);
+
         }
 
         if (m_NetworkManager.DisconnectReason != null)
