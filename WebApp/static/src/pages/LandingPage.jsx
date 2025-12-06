@@ -297,21 +297,21 @@ const DownloadOverlay = ({ isOpen, onClose }) => {
                     name: "Windows",
                     sub: "x64 / ARM64",
                     color: "blue",
-                    downloadUrl: "https://example.com/virtualclass-windows.exe",
+                    downloadUrl: "https://drive.google.com/file/d/1dGjtaEPJzao-39ro4_x5L-rndrBSTorf/view?usp=drive_link",
                   },
                   {
                     icon: Command,
                     name: "macOS",
                     sub: "Apple Silicon / Intel",
                     color: "white",
-                    downloadUrl: "https://example.com/virtualclass-macos.dmg",
+                    downloadUrl: "https://drive.google.com/file/d/1dGjtaEPJzao-39ro4_x5L-rndrBSTorf/view?usp=drive_link",
                   },
                   {
                     icon: Terminal,
                     name: "Linux",
                     sub: "Debian / Arch",
                     color: "orange",
-                    downloadUrl: "https://example.com/virtualclass-linux.tar.gz",
+                    downloadUrl: "https://drive.google.com/file/d/1TsbZ_bQjSXlMzuiPtbw9zOx7_gAvrocC/view?usp=drive_link",
                   },
                 ].map((os, i) => (
                   <a key={os.name} href={os.downloadUrl} download className="no-underline">
