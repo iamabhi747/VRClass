@@ -181,7 +181,7 @@ public class PersonalResourceGallery : MonoBehaviour
         // fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
         // fitter.aspectRatio = (float)texture.width / texture.height;
 
-        displayImage.uvRect = new Rect(1, 0, -1, 1); // Flip horizontally
+        // displayImage.uvRect = new Rect(1, 0, -1, 1); // Flip horizontally
     }
 
     public void SetActive2DScreen(bool isActive)
