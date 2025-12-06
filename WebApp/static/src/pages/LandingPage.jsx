@@ -297,21 +297,25 @@ const DownloadOverlay = ({ isOpen, onClose }) => {
                     name: "Windows",
                     sub: "x64 / ARM64",
                     color: "blue",
+                    downloadUrl: "https://example.com/virtualclass-windows.exe",
                   },
                   {
                     icon: Command,
                     name: "macOS",
                     sub: "Apple Silicon / Intel",
                     color: "white",
+                    downloadUrl: "https://example.com/virtualclass-macos.dmg",
                   },
                   {
                     icon: Terminal,
                     name: "Linux",
                     sub: "Debian / Arch",
                     color: "orange",
+                    downloadUrl: "https://example.com/virtualclass-linux.tar.gz",
                   },
                 ].map((os, i) => (
-                  <motion.button
+                  <a key={os.name} href={os.downloadUrl} download className="no-underline">
+                    <motion.button
                     key={os.name}
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -342,6 +346,7 @@ const DownloadOverlay = ({ isOpen, onClose }) => {
                       <p className="text-zinc-500 text-xs mt-1">{os.sub}</p>
                     </div>
                   </motion.button>
+                  </a>
                 ))}
               </div>
             </div>
@@ -506,11 +511,6 @@ const Navbar = ({ onOpenDownload }) => {
           VIRTUAL<span className="text-zinc-500">CLASS</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link to="/auth">
-            <button className="text-xs font-medium text-zinc-400 hover:text-white transition-colors">
-              Log In
-            </button>
-          </Link>
           <ShinyButton onClick={onOpenDownload}>
             Get App <Download size={12} className="ml-2" />
           </ShinyButton>
@@ -559,11 +559,9 @@ const Hero = ({ onOpenDownload }) => {
           transition={{ delay: 0.4 }}
           className="flex gap-4 pointer-events-auto"
         >
-          <Link to="/auth">
-            <button className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-full font-bold text-sm hover:scale-105 hover:shadow-[0_0_40px_rgba(139,92,246,0.4)] transition-all flex items-center gap-2">
-              Enter Class <ArrowRight size={16} />
-            </button>
-          </Link>
+          <button onClick={onOpenDownload} className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-full font-bold text-sm hover:scale-105 hover:shadow-[0_0_40px_rgba(139,92,246,0.4)] transition-all flex items-center gap-2">
+            Enter Class <ArrowRight size={16} />
+          </button>
         </motion.div>
       </div>
       <div className="absolute bottom-10 text-zinc-600 text-xs uppercase tracking-widest z-20 animate-pulse">
