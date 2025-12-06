@@ -528,7 +528,7 @@ MonoBehaviour:
   m_MaxConnectAttempts: 60
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
-    Address: 127.0.0.1
+    Address: 34.100.151.53
     Port: 7777
     ServerListenAddress: 0.0.0.0
   DebugSimulator:
@@ -1627,7 +1627,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   browserClient:
     engine: {fileID: 11400000, guid: 649ce3cfdf00ca615abcf2bb62227f5c, type: 2}
-    initialUrl: http://localhost:5173/loading
+    initialUrl: https://ph0enixx.dev/loading
     resolution:
       Width: 1920
       Height: 1080
